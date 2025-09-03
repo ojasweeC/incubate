@@ -44,7 +44,7 @@ final class DatabaseManager {
         CREATE TABLE IF NOT EXISTS entries (
           id TEXT PRIMARY KEY,
           user_id TEXT NOT NULL,
-          type TEXT NOT NULL CHECK (type IN ('raw','todos','goals')),
+          type TEXT NOT NULL CHECK (type IN ('raw','todos','goals','reflection')),
           title TEXT,
           text TEXT NOT NULL,
           tags TEXT,
@@ -303,6 +303,46 @@ final class DatabaseManager {
             try db.run(sql, title, text, isoString(Date()), id)
         }
     }
+    
+    func updateTodoItems(entryId: String, items: [(id: Int64?, text: String, isDone: Bool)]) throws {
+        try queue.sync {
+            try db.transaction {
+                // First, delete all existing todo items for this entry
+                let deleteSQL = "DELETE FROM todo_items WHERE entry_id = ?;"
+                try db.run(deleteSQL, entryId)
+                
+                // Then insert the new/updated items
+                for (index, item) in items.enumerated() {
+                    let sql = "INSERT INTO todo_items (entry_id, position, text, is_done) VALUES (?, ?, ?, ?);"
+                    try db.run(sql, entryId, index, item.text, item.isDone ? 1 : 0)
+                }
+                
+                // Update the entry's updated_at timestamp
+                let updateSQL = "UPDATE entries SET updated_at = ? WHERE id = ?;"
+                try db.run(updateSQL, isoString(Date()), entryId)
+            }
+        }
+    }
+    
+    func updateGoalItems(entryId: String, items: [(id: Int64?, bullet: String)]) throws {
+        try queue.sync {
+            try db.transaction {
+                // First, delete all existing goal items for this entry
+                let deleteSQL = "DELETE FROM goal_items WHERE entry_id = ?;"
+                try db.run(deleteSQL, entryId)
+                
+                // Then insert the new/updated items
+                for (index, item) in items.enumerated() {
+                    let sql = "INSERT INTO goal_items (entry_id, position, bullet) VALUES (?, ?, ?);"
+                    try db.run(sql, entryId, index, item.bullet)
+                }
+                
+                // Update the entry's updated_at timestamp
+                let updateSQL = "UPDATE entries SET updated_at = ? WHERE id = ?;"
+                try db.run(updateSQL, isoString(Date()), entryId)
+            }
+        }
+    }
 
     func updateTodoItem(id: Int64, isDone: Bool) throws {
         try queue.sync {
@@ -327,11 +367,16 @@ final class DatabaseManager {
 
     // MARK: - Private helpers
     private func insert(_ entry: Entry) throws {
-        try queue.sync {
-            let sql = "INSERT OR REPLACE INTO entries (id, user_id, type, title, text, tags, created_at, updated_at, deleted_at) VALUES (?,?,?,?,?,?,?,?,?);"
-            let tagsData = try? JSONEncoder().encode(entry.tags)
-            let tagsJSON = tagsData.flatMap { String(data: $0, encoding: .utf8) }
-            try db.run(sql, entry.id, entry.userId, entry.type.rawValue, entry.title, entry.text, tagsJSON, isoString(entry.createdAt), isoString(entry.updatedAt), entry.deletedAt.map(isoString))
-        }
+        let sql = """
+          INSERT OR REPLACE INTO entries
+          (id, user_id, type, title, text, tags, created_at, updated_at, deleted_at)
+          VALUES (?,?,?,?,?,?,?,?,?);
+        """
+        let tagsData = try? JSONEncoder().encode(entry.tags)
+        let tagsJSON = tagsData.flatMap { String(data: $0, encoding: .utf8) }
+        try db.run(sql,
+                   entry.id, entry.userId, entry.type.rawValue, entry.title,
+                   entry.text, tagsJSON, isoString(entry.createdAt),
+                   isoString(entry.updatedAt), entry.deletedAt.map(isoString))
     }
 }
