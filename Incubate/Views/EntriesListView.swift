@@ -67,8 +67,8 @@ struct EntriesListView: View {
         case .goals:
             // This would need to fetch goal items to count them
             return "Tap to view bullets"
-        case .voice:
-            return "Voice entry"
+        case .reflection:
+            return "Reflect with Inky"
         }
     }
 }

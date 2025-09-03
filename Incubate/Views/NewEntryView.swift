@@ -15,7 +15,7 @@ struct NewEntryView: View {
             case .raw: _selectedKind = State(initialValue: .raw)
             case .goals: _selectedKind = State(initialValue: .planning)
             case .todos: _selectedKind = State(initialValue: .planning)
-            case .voice: _selectedKind = State(initialValue: .raw)
+            case .reflection: _selectedKind = State(initialValue: .reflection)
             }
         }
     }

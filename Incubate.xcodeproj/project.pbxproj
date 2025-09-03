@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F001126B2E68D6490014BE71 /* DailyReflectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00112692E68D6490014BE71 /* DailyReflectionView.swift */; };
+		F001126C2E68D6490014BE71 /* ReflectionEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001126A2E68D6490014BE71 /* ReflectionEditorView.swift */; };
+		F001126E2E68D6620014BE71 /* InkyAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001126D2E68D6620014BE71 /* InkyAIService.swift */; };
+		F00112702E68D6700014BE71 /* DailyReflectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F001126F2E68D6700014BE71 /* DailyReflectionViewModel.swift */; };
+		F00112722E68D67D0014BE71 /* InkyAITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00112712E68D67D0014BE71 /* InkyAITest.swift */; };
+		F00112742E68D7440014BE71 /* NaturalLanguage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F00112732E68D7440014BE71 /* NaturalLanguage.framework */; };
+		F00112762E68D80A0014BE71 /* DailyReflection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00112752E68D80A0014BE71 /* DailyReflection.swift */; };
 		F0AB676D2E68A64A00DD2863 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AB66FF2E68A64A00DD2863 /* DatabaseManager.swift */; };
 		F0AB676E2E68A64A00DD2863 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AB670D2E68A64A00DD2863 /* MainView.swift */; };
 		F0AB676F2E68A64A00DD2863 /* EntryTypeSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AB67092E68A64A00DD2863 /* EntryTypeSelectorView.swift */; };
@@ -43,6 +50,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F00112692E68D6490014BE71 /* DailyReflectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflectionView.swift; sourceTree = "<group>"; };
+		F001126A2E68D6490014BE71 /* ReflectionEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReflectionEditorView.swift; sourceTree = "<group>"; };
+		F001126D2E68D6620014BE71 /* InkyAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkyAIService.swift; sourceTree = "<group>"; };
+		F001126F2E68D6700014BE71 /* DailyReflectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflectionViewModel.swift; sourceTree = "<group>"; };
+		F00112712E68D67D0014BE71 /* InkyAITest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkyAITest.swift; sourceTree = "<group>"; };
+		F00112732E68D7440014BE71 /* NaturalLanguage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NaturalLanguage.framework; path = System/Library/Frameworks/NaturalLanguage.framework; sourceTree = SDKROOT; };
+		F00112752E68D80A0014BE71 /* DailyReflection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflection.swift; sourceTree = "<group>"; };
 		F0AB66812E68A4D100DD2863 /* Incubate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Incubate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0AB66F22E68A64A00DD2863 /* DBSmokeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBSmokeTest.swift; sourceTree = "<group>"; };
 		F0AB66F42E68A64A00DD2863 /* AppButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppButtonStyle.swift; sourceTree = "<group>"; };
@@ -83,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F00112742E68D7440014BE71 /* NaturalLanguage.framework in Frameworks */,
 				F0AB67962E68A70600DD2863 /* SQLite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -112,6 +127,7 @@
 		F0AB66F32E68A64A00DD2863 /* Debug */ = {
 			isa = PBXGroup;
 			children = (
+				F00112712E68D67D0014BE71 /* InkyAITest.swift */,
 				F0AB66F22E68A64A00DD2863 /* DBSmokeTest.swift */,
 			);
 			path = Debug;
@@ -131,6 +147,7 @@
 		F0AB66FD2E68A64A00DD2863 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				F00112752E68D80A0014BE71 /* DailyReflection.swift */,
 				F0AB66F92E68A64A00DD2863 /* Entry.swift */,
 				F0AB66FA2E68A64A00DD2863 /* EntryDetail.swift */,
 				F0AB66FB2E68A64A00DD2863 /* EntryType.swift */,
@@ -142,6 +159,7 @@
 		F0AB67022E68A64A00DD2863 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				F001126D2E68D6620014BE71 /* InkyAIService.swift */,
 				F0AB66FE2E68A64A00DD2863 /* AppPrefs.swift */,
 				F0AB66FF2E68A64A00DD2863 /* DatabaseManager.swift */,
 				F0AB67002E68A64A00DD2863 /* HapticsService.swift */,
@@ -153,6 +171,7 @@
 		F0AB67062E68A64A00DD2863 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				F001126F2E68D6700014BE71 /* DailyReflectionViewModel.swift */,
 				F0AB67032E68A64A00DD2863 /* AppLockViewModel.swift */,
 				F0AB67042E68A64A00DD2863 /* InsightsViewModel.swift */,
 				F0AB67052E68A64A00DD2863 /* UserProfileViewModel.swift */,
@@ -163,6 +182,8 @@
 		F0AB67132E68A64A00DD2863 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				F00112692E68D6490014BE71 /* DailyReflectionView.swift */,
+				F001126A2E68D6490014BE71 /* ReflectionEditorView.swift */,
 				F0AB67072E68A64A00DD2863 /* EntriesListView.swift */,
 				F0AB67082E68A64A00DD2863 /* EntryDetailView.swift */,
 				F0AB67092E68A64A00DD2863 /* EntryTypeSelectorView.swift */,
@@ -213,6 +234,7 @@
 		F0AB67942E68A70600DD2863 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F00112732E68D7440014BE71 /* NaturalLanguage.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -308,17 +330,23 @@
 				F0AB67782E68A64A00DD2863 /* UserProfileViewModel.swift in Sources */,
 				F0AB677A2E68A64A00DD2863 /* CardStyle.swift in Sources */,
 				F0AB677B2E68A64A00DD2863 /* Entry.swift in Sources */,
+				F001126B2E68D6490014BE71 /* DailyReflectionView.swift in Sources */,
+				F00112722E68D67D0014BE71 /* InkyAITest.swift in Sources */,
+				F001126C2E68D6490014BE71 /* ReflectionEditorView.swift in Sources */,
 				F0AB677C2E68A64A00DD2863 /* AppPrefs.swift in Sources */,
 				F0AB677D2E68A64A00DD2863 /* EntryDetailView.swift in Sources */,
 				F0AB677E2E68A64A00DD2863 /* RawEditorView.swift in Sources */,
+				F00112702E68D6700014BE71 /* DailyReflectionViewModel.swift in Sources */,
 				F0AB677F2E68A64A00DD2863 /* NewEntryView.swift in Sources */,
 				F0AB67802E68A64A00DD2863 /* AppFonts.swift in Sources */,
 				F0AB67812E68A64A00DD2863 /* EntryDetail.swift in Sources */,
+				F001126E2E68D6620014BE71 /* InkyAIService.swift in Sources */,
 				F0AB67822E68A64A00DD2863 /* DBSmokeTest.swift in Sources */,
 				F0AB67832E68A64A00DD2863 /* SettingsView.swift in Sources */,
 				F0AB67842E68A64A00DD2863 /* EntryType.swift in Sources */,
 				F0AB67852E68A64A00DD2863 /* IncubateApp.swift in Sources */,
 				F0AB67872E68A64A00DD2863 /* TodosEditorView.swift in Sources */,
+				F00112762E68D80A0014BE71 /* DailyReflection.swift in Sources */,
 				F0AB67882E68A64A00DD2863 /* UserProfile.swift in Sources */,
 				F0AB678A2E68A64A00DD2863 /* AppColors.swift in Sources */,
 				F0AB678C2E68A64A00DD2863 /* AppButtonStyle.swift in Sources */,

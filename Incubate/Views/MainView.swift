@@ -9,6 +9,7 @@ struct MainView: View {
             header
             streakChip
             entryBuckets
+            inkySection
             Spacer()
             buttonRow
         }
@@ -54,7 +55,7 @@ struct MainView: View {
     private var entryBuckets: some View {
         VStack(spacing: 16) {
             HStack(spacing: 16) {
-                bucketCard(type: .voice, icon: "waveform")
+                bucketCard(type: .reflection, icon: "bubble.left.and.bubble.right")
                 bucketCard(type: .goals, icon: "target")
             }
             HStack(spacing: 16) {
@@ -107,6 +108,57 @@ struct MainView: View {
             }
             .buttonStyle(BeigeCircleButtonStyle())
             .accessibilityLabel("Open Profile/Settings")
+        }
+    }
+    
+    private var inkySection: some View {
+        VStack(spacing: 16) {
+            // Prominent Inky button
+            NavigationLink { DailyReflectionView() } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "octopus.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.white)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Chat with Inky")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Text("Daily reflection & insights")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .padding(20)
+                .background(
+                    LinearGradient(
+                        colors: [AppColors.seaMoss, AppColors.seaMoss.opacity(0.8)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(20)
+                .shadow(color: AppColors.seaMoss.opacity(0.3), radius: 12, x: 0, y: 6)
+            }
+            .accessibilityLabel("Start daily reflection with Inky AI")
+            
+            // Daily completion status
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("Daily reflection ready")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal, 4)
         }
     }
 }

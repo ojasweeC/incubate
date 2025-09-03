@@ -35,10 +35,8 @@ struct EntryDetailView: View {
                             todosDetailView(detail)
                         case .goals:
                             goalsDetailView(detail)
-                        case .voice:
-                            Text("Voice entries not implemented yet")
-                                .foregroundColor(AppColors.seaMoss)
-                                .padding(.horizontal, 16)
+                        case .reflection:
+                            reflectionDetailView(detail)
                         }
                     }
                     .padding(.vertical, 16)
@@ -146,6 +144,36 @@ struct EntryDetailView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
+                    .background(AppColors.beige)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .padding(.horizontal, 16)
+                }
+            }
+        }
+    }
+    
+    private func reflectionDetailView(_ detail: EntryDetail) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Questions & Answers")
+                .font(.headline)
+                .foregroundColor(AppColors.ink)
+                .padding(.horizontal, 16)
+            
+            if let reflectionQAs = detail.reflectionQAs {
+                ForEach(reflectionQAs) { qa in
+                    VStack(alignment: .leading, spacing: 8) {
+                        if !qa.question.isEmpty {
+                            Text("Q: \(qa.question)")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(AppColors.seaMoss)
+                        }
+                        
+                        Text("A: \(qa.answer)")
+                            .foregroundColor(AppColors.ink)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .background(AppColors.beige)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.horizontal, 16)

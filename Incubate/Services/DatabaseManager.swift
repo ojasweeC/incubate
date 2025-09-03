@@ -44,7 +44,7 @@ final class DatabaseManager {
         CREATE TABLE IF NOT EXISTS entries (
           id TEXT PRIMARY KEY,
           user_id TEXT NOT NULL,
-          type TEXT NOT NULL CHECK (type IN ('raw','todos','goals')),
+          type TEXT NOT NULL CHECK (type IN ('raw','todos','goals','reflection')),
           title TEXT,
           text TEXT NOT NULL,
           tags TEXT,
@@ -72,6 +72,15 @@ final class DatabaseManager {
           bullet TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_goal_entry_pos ON goal_items(entry_id, position);
+        
+        CREATE TABLE IF NOT EXISTS reflection_qas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          entry_id TEXT NOT NULL,
+          position INTEGER NOT NULL,
+          question TEXT NOT NULL,
+          answer TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_reflection_entry_pos ON reflection_qas(entry_id, position);
         """
         try db.execute(createSQL)
     }
@@ -267,6 +276,7 @@ final class DatabaseManager {
             // Fetch child items based on type
             var todoItems: [TodoItem]?
             var goalItems: [GoalItem]?
+            var reflectionQAs: [ReflectionQA]?
 
             if type == .todos {
                 let todoSQL = "SELECT id, entry_id, position, text, is_done FROM todo_items WHERE entry_id = ? ORDER BY position;"
@@ -291,9 +301,21 @@ final class DatabaseManager {
                     let bullet = goalRow[3] as? String ?? ""
                     goalItems?.append(GoalItem(id: goalId, entryId: goalEntryId, position: position, bullet: bullet))
                 }
+            } else if type == .reflection {
+                let reflectionSQL = "SELECT id, entry_id, position, question, answer FROM reflection_qas WHERE entry_id = ? ORDER BY position;"
+                let reflectionStmt = try db.prepare(reflectionSQL, id)
+                reflectionQAs = []
+                for reflectionRow in reflectionStmt {
+                    let reflectionId = reflectionRow[0] as? Int64 ?? 0
+                    let reflectionEntryId = reflectionRow[1] as? String ?? ""
+                    let position = reflectionRow[2] as? Int ?? 0
+                    let question = reflectionRow[3] as? String ?? ""
+                    let answer = reflectionRow[4] as? String ?? ""
+                    reflectionQAs?.append(ReflectionQA(id: reflectionId, entryId: reflectionEntryId, position: position, question: question, answer: answer))
+                }
             }
 
-            return EntryDetail(entry: entry, todoItems: todoItems, goalItems: goalItems)
+            return EntryDetail(entry: entry, todoItems: todoItems, goalItems: goalItems, reflectionQAs: reflectionQAs)
         }
     }
 
@@ -322,6 +344,51 @@ final class DatabaseManager {
         try queue.sync {
             let sql = "UPDATE entries SET deleted_at = ? WHERE id = ?;"
             try db.run(sql, isoString(Date()), id)
+        }
+    }
+    
+    // MARK: - Reflection Methods
+    
+    func saveNewReflection(title: String?, qas: [(String, String)]) throws -> Entry {
+        try queue.sync {
+            let entry = Entry(
+                id: UUID().uuidString,
+                userId: "local-user",
+                type: .reflection,
+                title: title,
+                text: "",
+                tags: [],
+                createdAt: Date(),
+                updatedAt: Date(),
+                deletedAt: nil
+            )
+            try insert(entry)
+            
+            // Insert Q&A pairs
+            for (index, qa) in qas.enumerated() {
+                let sql = "INSERT INTO reflection_qas (entry_id, position, question, answer) VALUES (?, ?, ?, ?);"
+                try db.run(sql, entry.id, index, qa.0, qa.1)
+            }
+            
+            return entry
+        }
+    }
+    
+    func updateReflectionQAs(entryId: String, items: [(id: Int64?, question: String, answer: String)]) throws {
+        try queue.sync {
+            // Delete existing Q&As
+            let deleteSQL = "DELETE FROM reflection_qas WHERE entry_id = ?;"
+            try db.run(deleteSQL, entryId)
+            
+            // Insert new Q&As
+            for (index, item) in items.enumerated() {
+                let sql = "INSERT INTO reflection_qas (entry_id, position, question, answer) VALUES (?, ?, ?, ?);"
+                try db.run(sql, entryId, index, item.question, item.answer)
+            }
+            
+            // Update entry timestamp
+            let updateSQL = "UPDATE entries SET updated_at = ? WHERE id = ?;"
+            try db.run(updateSQL, isoString(Date()), entryId)
         }
     }
 

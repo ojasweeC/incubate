@@ -17,6 +17,7 @@ struct EntryTypeSelectorView: View {
                     entryTypeButton(.raw, title: "Raw", subtitle: "Free-form thoughts and notes")
                     entryTypeButton(.todos, title: "To-Do's", subtitle: "Organized task lists")
                     entryTypeButton(.goals, title: "Goal Setting", subtitle: "Future planning and aspirations")
+                    entryTypeButton(.reflection, title: "Reflection", subtitle: "Questions and answers for self-reflection")
                 }
                 
                 Spacer()
@@ -37,8 +38,8 @@ struct EntryTypeSelectorView: View {
                     TodosEditorView()
                 case .goals:
                     GoalsEditorView()
-                case .voice:
-                    EmptyView() // Not implemented in this version
+                case .reflection:
+                    ReflectionEditorView()
                 }
             }
         }
