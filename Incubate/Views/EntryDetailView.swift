@@ -5,7 +5,6 @@ struct EntryDetailView: View {
     @State private var entryDetail: EntryDetail?
     @State private var isLoading = true
     @State private var showingDeleteAlert = false
-    @State private var showingEditView = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -53,27 +52,12 @@ struct EntryDetailView: View {
         .navigationTitle("Entry Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    showingEditView = true
-                } label: {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(AppColors.seaMoss)
-                }
-                .accessibilityLabel("Edit Entry")
-            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Delete") {
                     showingDeleteAlert = true
                 }
                 .foregroundColor(.red)
             }
-        }
-        .sheet(isPresented: $showingEditView, onDismiss: {
-            loadEntryDetail()
-        }) {
-            editViewForEntryType
         }
         .onAppear {
             loadEntryDetail()
@@ -85,25 +69,6 @@ struct EntryDetailView: View {
             }
         } message: {
             Text("Are you sure you want to delete this entry? This action cannot be undone.")
-        }
-    }
-    
-    @ViewBuilder
-    private var editViewForEntryType: some View {
-        if let entryDetail = entryDetail {
-            switch entryDetail.entry.type {
-            case .raw:
-                RawEditorView(entryId: entryId)
-            case .todos:
-                TodosEditorView(entryId: entryId)
-            case .goals:
-                GoalsEditorView(entryId: entryId)
-            case .voice:
-                Text("Voice entries not implemented yet")
-                    .foregroundColor(AppColors.seaMoss)
-            }
-        } else {
-            EmptyView()
         }
     }
     
