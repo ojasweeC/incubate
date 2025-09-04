@@ -99,17 +99,24 @@ struct EntryDetailView: View {
                 ForEach(todoItems) { item in
                     HStack {
                         Button {
+                            // Add haptic feedback
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                            
                             toggleTodoItem(item)
                         } label: {
                             Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(item.isDone ? AppColors.seaMoss : AppColors.ink)
+                                .foregroundColor(item.isDone ? AppColors.seaMoss : AppColors.seaMoss.opacity(0.5))
                                 .font(.title2)
+                                .scaleEffect(item.isDone ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 0.2), value: item.isDone)
                         }
                         .buttonStyle(PlainButtonStyle())
                         
                         Text(item.text)
-                            .foregroundColor(AppColors.ink)
+                            .foregroundColor(item.isDone ? AppColors.ink.opacity(0.6) : AppColors.ink)
                             .strikethrough(item.isDone)
+                            .animation(.easeInOut(duration: 0.2), value: item.isDone)
                         
                         Spacer()
                     }
@@ -194,11 +201,39 @@ struct EntryDetailView: View {
     }
     
     private func toggleTodoItem(_ item: TodoItem) {
-        do {
-            try DatabaseManager.shared.updateTodoItem(id: item.id, isDone: !item.isDone)
-            loadEntryDetail() // Reload to show updated state
-        } catch {
-            print("Failed to update todo item: \(error)")
+        // Update UI state immediately for better responsiveness
+        if var detail = entryDetail, let todoItems = detail.todoItems {
+            if let index = todoItems.firstIndex(where: { $0.id == item.id }) {
+                var updatedTodoItems = todoItems
+                updatedTodoItems[index] = TodoItem(
+                    id: item.id,
+                    entryId: item.entryId,
+                    position: item.position,
+                    text: item.text,
+                    isDone: !item.isDone
+                )
+                entryDetail = EntryDetail(
+                    entry: detail.entry,
+                    todoItems: updatedTodoItems,
+                    goalItems: detail.goalItems,
+                    reflectionQAs: detail.reflectionQAs
+                )
+            }
+        }
+        
+        // Update database in background
+        Task {
+            do {
+                print("🔄 Toggling todo item \(item.id) from \(item.isDone) to \(!item.isDone)")
+                try DatabaseManager.shared.updateTodoItem(id: item.id, isDone: !item.isDone)
+                print("✅ Successfully updated todo item in database")
+            } catch {
+                print("❌ Failed to update todo item: \(error)")
+                // Revert UI state if database update failed
+                await MainActor.run {
+                    loadEntryDetail()
+                }
+            }
         }
     }
     

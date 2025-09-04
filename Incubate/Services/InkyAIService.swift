@@ -159,18 +159,23 @@ final class InkyAIService {
     // MARK: - Enhanced Sentiment Analysis
     
     func analyzeSentiment(for text: String) -> Double {
+        print("Analyzing text: '\(text.prefix(50))...'")
+        
         let sentimentTagger = NLTagger(tagSchemes: [.sentimentScore])
         sentimentTagger.string = text
         
         let (sentiment, _) = sentimentTagger.tag(at: text.startIndex, unit: .document, scheme: .sentimentScore)
         
+        print("Raw sentiment result: \(sentiment?.rawValue ?? "nil")")
+        
         if let sentimentValue = sentiment?.rawValue,
            let score = Double(sentimentValue) {
-            // Apple returns -1.0 (negative) to 1.0 (positive)
-            // Convert to 0.0 to 1.0 scale to match your existing logic
-            return (score + 1.0) / 2.0
+            let convertedScore = (score + 1.0) / 2.0
+            print("Converted score: \(convertedScore)")
+            return convertedScore
         }
         
+        print("Falling back to 0.5")
         return 0.5 // Neutral fallback
     }
     
@@ -206,12 +211,12 @@ final class InkyAIService {
         var needs: [EmotionalNeed] = []
         
         // Detect need for validation
-        if lowercased.contains("nobody") || lowercased.contains("alone") || lowercased.contains("understand") {
+        if lowercased.contains("nobody") || lowercased.contains("alone") || lowercased.contains("understand") || lowercased.contains("sad"){
             needs.append(.validation)
         }
         
         // Detect need for perspective
-        if lowercased.contains("stuck") || lowercased.contains("confused") || lowercased.contains("overwhelmed") {
+        if lowercased.contains("stuck") || lowercased.contains("confused") || lowercased.contains("overwhelmed") || lowercased.contains("stressed"){
             needs.append(.perspective)
         }
         
@@ -221,7 +226,7 @@ final class InkyAIService {
         }
         
         // Detect moments to celebrate
-        if lowercased.contains("accomplished") || lowercased.contains("proud") || lowercased.contains("achieved") {
+        if lowercased.contains("accomplished") || lowercased.contains("proud") || lowercased.contains("achieved") || lowercased.contains("good") || lowercased.contains("happy") {
             needs.append(.celebration)
         }
         
@@ -237,23 +242,23 @@ final class InkyAIService {
         var response = reflection
         
         if emotionalNeeds.contains(.validation) {
-            response += "What you're feeling makes complete sense given what you're going through. "
+            response += "Thanks for sharing that. These feelings are often our body's way of expressing a deeper need. After this reflection, try free-writing and asking yourself \"why\" until you come to the root of the issue. Like \"Why am I sad?\" and if you respond with \"Because I feel like everyone is judging me.\", then ask \"Why do I feel judged?\""
         }
         
         if emotionalNeeds.contains(.perspective) {
-            response += "Sometimes when we're in the middle of something, it's hard to see the whole picture. "
+            response += "Thanks for sharing that. Feelings of overwhelm or confusion often mean the task or decision needs to be broken down into smaller steps. After this reflection, pretend that you are a teacher guiding yourself through this task and create a to-do list. Or try writing the worst-case scenario, which probably won't seem so daunting, and best-case scenario, which will feel more reachable."
         }
         
         if emotionalNeeds.contains(.encouragement) {
-            response += "I can hear how hard you're trying, and that effort matters even when things feel difficult. "
+            response += "Thanks for sharing that. Sometimes, these are the breakthrough moments and if you don't believe in yourself, I'll believe for you. To boost your motivation, take a glance at your goals or add some new ones."
         }
         
         if emotionalNeeds.contains(.celebration) {
-            response += "That's something to genuinely feel good about - you should celebrate that accomplishment! "
+            response += "Thanks for sharing that! After this reflection, I suggest writing down a couple of affirmations or grateful statements to capture this feeling."
         }
         
         // Gentle exploration
-        response += "What would feel most supportive right now - talking through what happened, or thinking about what might help you move forward?"
+        response += "Thanks for sharing that. The fact that you're here reflecting is already a sign of growth."
         
         return response
     }
@@ -413,12 +418,9 @@ final class InkyAIService {
     
     func generateDailyGreeting() -> String {
         let greetings = [
-            "Good morning! How are you feeling today?",
-            "Hello there! Ready to reflect on your day?",
-            "Hi! I've been looking at your recent entries. How's everything going?",
-            "Welcome back! I noticed some interesting patterns in your journal. Want to chat about them?"
+            "Welcome back! How has your day been? Feel free to share anything."
         ]
-        return greetings.randomElement() ?? greetings[0]
+        return greetings[0]
     }
     
     func generateEmpathicQuestion(userResponse: String, conversationStage: Int, insights: [GrowthInsight] = []) -> String {
@@ -528,19 +530,27 @@ final class InkyAIService {
         var todoItems: [TodoItem] = []
         var goalItems: [GoalItem] = []
         
-        // Create 7 days of realistic data with a professional growth story
+        // Create entries for a specific week (Monday to Sunday)
+        // Start from last Monday
+        let today = calendar.startOfDay(for: now)
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromMonday = (weekday == 1) ? 6 : weekday - 2 // Sunday = 1, Monday = 2
+        let lastMonday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) ?? today
+        
+        // Create entries for each day of the week
         for i in 0..<7 {
-            let date = calendar.date(byAdding: .day, value: -i, to: now) ?? now
+            let date = calendar.date(byAdding: .day, value: -i, to: lastMonday) ?? now
             
             // Professional-focused raw entries showing career and life balance growth
+            // Each entry corresponds to a specific day of the week
             let rawTexts = [
-                "Finally sent that proposal I've been perfecting for weeks. The client feedback was positive and I feel confident about my strategic thinking. Learning to trust my expertise more.",
-                "Declined working late tonight to have dinner with friends. Six months ago I would have felt guilty, but setting boundaries is helping me show up better at work and in life.",
-                "Tough day with back-to-back meetings and competing deadlines. Instead of panicking like I used to, I prioritized ruthlessly and communicated clearly with my team. Growth in action.",
-                "Had my quarterly review today. My manager noticed how much my communication skills have improved. All those uncomfortable conversations I've been having are paying off.",
-                "Networking event felt less draining than usual. I'm getting better at authentic professional relationships instead of just collecting business cards. Quality over quantity.",
-                "Presented to senior leadership today and didn't apologize for taking up their time. I'm learning that my insights have value and deserve space in the room.",
-                "Wrapping up a challenging week. The old me would have burned out by Wednesday, but I've been managing my energy better. Small sustainable changes are adding up."
+                "Monday motivation! Started the week by finally sending that proposal I've been perfecting for weeks. The client feedback was positive and I feel confident about my strategic thinking. Learning to trust my expertise more.",
+                "Tuesday boundaries. Declined working late tonight to have dinner with friends. Six months ago I would have felt guilty, but setting boundaries is helping me show up better at work and in life.",
+                "Wednesday wisdom. Tough day with back-to-back meetings and competing deadlines. Instead of panicking like I used to, I prioritized ruthlessly and communicated clearly with my team. Growth in action.",
+                "Thursday triumph. Had my quarterly review today. My manager noticed how much my communication skills have improved. All those uncomfortable conversations I've been having are paying off.",
+                "Friday focus. Networking event felt less draining than usual. I'm getting better at authentic professional relationships instead of just collecting business cards. Quality over quantity.",
+                "Saturday success. Presented to senior leadership today and didn't apologize for taking up their time. I'm learning that my insights have value and deserve space in the room.",
+                "Sunday reflection. Wrapping up a challenging week. The old me would have burned out by Wednesday, but I've been managing my energy better. Small sustainable changes are adding up."
             ]
             
             let entry = Entry(
@@ -556,12 +566,13 @@ final class InkyAIService {
             )
             entries.append(entry)
             
-            // Professional-focused todos
+            // Professional-focused todos with day-specific titles
+            let dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
             let todoEntry = Entry(
                 id: UUID().uuidString,
                 userId: "demo-user",
                 type: .todos,
-                title: "Professional Tasks",
+                title: "\(dayNames[i]) Tasks",
                 text: "",
                 tags: ["demo"],
                 createdAt: date,
@@ -601,7 +612,7 @@ final class InkyAIService {
                     id: UUID().uuidString,
                     userId: "demo-user",
                     type: .goals,
-                    title: "Q4 Professional Goals",
+                    title: "\(dayNames[i]) Goals",
                     text: "",
                     tags: ["demo", "career"],
                     createdAt: date,
