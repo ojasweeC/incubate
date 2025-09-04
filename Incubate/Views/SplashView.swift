@@ -11,7 +11,7 @@ struct SplashView: View {
             )
             .ignoresSafeArea()
 
-            Text("Preparing your space…")
+            Text("Preparing incubation chamber…")
                 .font(.title)
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 2)

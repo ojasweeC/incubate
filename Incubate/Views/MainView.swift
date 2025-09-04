@@ -87,7 +87,7 @@ struct MainView: View {
     private var buttonRow: some View {
         HStack(spacing: 24) {
             NavigationLink { InsightsView() } label: {
-                Image(systemName: "thought.bubble")
+                Image(systemName: "chart.line.uptrend.xyaxis")
                     .font(.system(size: 24))
             }
             .buttonStyle(BeigeCircleButtonStyle())
@@ -139,13 +139,13 @@ struct MainView: View {
                 .padding(20)
                 .background(
                     LinearGradient(
-                        colors: [AppColors.seaMoss, AppColors.seaMoss.opacity(0.8)],
-                        startPoint: .leading,
-                        endPoint: .trailing
+                        colors: [AppColors.seaMoss, AppColors.teal],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
                 .cornerRadius(20)
-                .shadow(color: AppColors.seaMoss.opacity(0.3), radius: 12, x: 0, y: 6)
+                .shadow(color: AppColors.seaMoss.opacity(0.4), radius: 16, x: 0, y: 8)
             }
             .accessibilityLabel("Start daily reflection with Inky AI")
             

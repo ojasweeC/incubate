@@ -7,68 +7,110 @@ struct GoalsEditorView: View {
     @State private var showingSaveAlert = false
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Category")
-                        .font(.headline)
-                        .foregroundColor(AppColors.ink)
-                    TextField("Enter category...", text: $title)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Bullets")
-                            .font(.headline)
+        ZStack {
+            // Beautiful gradient background
+            LinearGradient(
+                colors: [AppColors.seaMoss, AppColors.teal],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            // Content
+            NavigationStack {
+                VStack(spacing: 24) {
+                    // Category Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Category")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                        
+                        TextField("Enter category...", text: $title)
+                            .padding(16)
+                            .background(Color.white)
                             .foregroundColor(AppColors.ink)
-                        Spacer()
-                        Button("Add Bullet") {
-                            bullets.append("")
-                        }
-                        .buttonStyle(BeigePillButtonStyle())
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(AppColors.ink.opacity(0.1), lineWidth: 1)
+                            )
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    .background(Color.white.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
                     
-                    ForEach(bullets.indices, id: \.self) { index in
+                    // Bullets Section
+                    VStack(alignment: .leading, spacing: 16) {
                         HStack {
-                            Text("•")
-                                .foregroundColor(AppColors.seaMoss)
-                                .font(.title2)
-                            
-                            TextField("Enter bullet point...", text: $bullets[index])
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            
-                            if bullets.count > 1 {
-                                Button {
-                                    bullets.remove(at: index)
-                                } label: {
-                                    Image(systemName: "minus.circle")
-                                        .foregroundColor(.red)
-                                        .font(.title2)
+                            Text("Bullets")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                            Spacer()
+                            Button("Add Bullet") {
+                                bullets.append("")
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(AppColors.seaMoss)
+                            .foregroundColor(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        
+                        ForEach(bullets.indices, id: \.self) { index in
+                            HStack(spacing: 12) {
+                                Text("•")
+                                    .foregroundColor(.white)
+                                    .font(.title2)
+                                
+                                TextField("Enter bullet point...", text: $bullets[index])
+                                    .padding(12)
+                                    .background(Color.white)
+                                    .foregroundColor(AppColors.ink)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                
+                                if bullets.count > 1 {
+                                    Button {
+                                        bullets.remove(at: index)
+                                    } label: {
+                                        Image(systemName: "minus.circle")
+                                            .foregroundColor(.white)
+                                            .font(.title2)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    .background(Color.white.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    
+                    Spacer()
                 }
-                
-                Spacer()
-            }
-            .padding(16)
-            .navigationTitle("Goal Setting")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                .padding(.top, 20)
+                .navigationTitle("Goal Setting")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                            .foregroundColor(.white)
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") { saveEntry() }
+                            .foregroundColor(.white)
+                            .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || 
+                                    bullets.allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+                    }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { saveEntry() }
-                        .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || 
-                                bullets.allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+                .alert("Entry Saved", isPresented: $showingSaveAlert) {
+                    Button("OK") { dismiss() }
                 }
-            }
-            .alert("Entry Saved", isPresented: $showingSaveAlert) {
-                Button("OK") { dismiss() }
             }
         }
     }

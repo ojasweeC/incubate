@@ -5,7 +5,6 @@ import SwiftUI
 final class DailyReflectionViewModel: ObservableObject {
     @Published var currentReflection: DailyReflection?
     @Published var isLoading = false
-    @Published var isThinking = false
     @Published var errorMessage: String?
     @Published var showingError = false
     
@@ -43,7 +42,6 @@ final class DailyReflectionViewModel: ObservableObject {
         // Reset conversation if starting fresh
         if reflection.conversation.isEmpty {
             conversationStage = .greeting
-            isThinking = false
             addInkyMessage(inkyService.generateDailyGreeting(), type: .question)
         }
         
@@ -53,35 +51,20 @@ final class DailyReflectionViewModel: ObservableObject {
         }
     }
     
-    func sendUserMessage(_ content: String, completion: @escaping () -> Void = {}) {
+    func sendUserMessage(_ content: String) {
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
         // Add user message
         addUserMessage(content)
         
-        // Show thinking state
-        isThinking = true
-        
-        // Progress conversation based on current stage with a delay
-        Task {
-            // Simulate thinking time (1-3 seconds)
-            let thinkingTime = Double.random(in: 1.0...3.0)
-            try? await Task.sleep(nanoseconds: UInt64(thinkingTime * 1_000_000_000))
-            
-            await MainActor.run {
-                switch conversationStage {
-                case .greeting:
-                    progressToContextual()
-                case .contextual:
-                    progressToGoalSetting()
-                case .goalSetting:
-                    completeReflection()
-                }
-                isThinking = false
-                
-                // Call completion callback
-                completion()
-            }
+        // Progress conversation based on current stage
+        switch conversationStage {
+        case .greeting:
+            progressToContextual()
+        case .contextual:
+            progressToGoalSetting()
+        case .goalSetting:
+            completeReflection()
         }
     }
     
@@ -190,25 +173,25 @@ final class DailyReflectionViewModel: ObservableObject {
     }
     
     private func progressToContextual() {
-        conversationStage = .contextual
-        
-        // First, acknowledge their previous response
-        addInkyMessage("Thank you for sharing that. I'm learning more about your patterns and what drives you.", type: .insight)
-        
-        // Then ask the next question after a brief pause
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            let userResponses = self.currentReflection?.conversation.filter { $0.sender == .user } ?? []
-            let lastUserResponse = userResponses.last?.content ?? ""
+            conversationStage = .contextual
             
-            let contextualQuestion = self.inkyService.generateEmpathicQuestion(
-                userResponse: lastUserResponse,
-                conversationStage: self.conversationStage.rawValue,
-                insights: self.insights
-            )
+            // First, acknowledge their previous response
+            addInkyMessage("Thank you for sharing that. I'm learning more about your patterns and what drives you.", type: .insight)
             
-            self.addInkyMessage(contextualQuestion, type: .question)
+            // Then ask the next question after a brief pause
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                let userResponses = self.currentReflection?.conversation.filter { $0.sender == .user } ?? []
+                let lastUserResponse = userResponses.last?.content ?? ""
+                
+                let contextualQuestion = self.inkyService.generateEmpathicQuestion(
+                    userResponse: lastUserResponse,
+                    conversationStage: self.conversationStage.rawValue,
+                    insights: self.insights
+                )
+                
+                self.addInkyMessage(contextualQuestion, type: .question)
+            }
         }
-    }
     
     private func progressToGoalSetting() {
         conversationStage = .goalSetting
@@ -267,39 +250,8 @@ final class DailyReflectionViewModel: ObservableObject {
     }
     
     private func saveReflection() {
-        guard let reflection = currentReflection else { return }
-        
-        do {
-            // Convert conversation to Q&A pairs for database
-            var qaPairs: [(String, String)] = []
-            var pendingQuestion = ""
-            
-            for message in reflection.conversation {
-                if message.sender == .inky && (message.messageType == .question || message.messageType == .text) {
-                    pendingQuestion = message.content
-                } else if message.sender == .user && !pendingQuestion.isEmpty {
-                    qaPairs.append((pendingQuestion, message.content))
-                    pendingQuestion = ""
-                }
-            }
-            
-            // Create title with date
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-            let dateString = dateFormatter.string(from: reflection.date)
-            let title = "Daily Reflection - \(dateString)"
-            
-            // Save to database
-            let entry = try databaseManager.saveNewReflection(
-                title: title,
-                qas: qaPairs
-            )
-            
-            print("✅ Reflection saved successfully: \(entry.id)")
-            
-        } catch {
-            errorMessage = "Failed to save reflection: \(error.localizedDescription)"
-            showingError = true
-        }
+        // In production, save to persistent storage
+        // For demo, just print confirmation
+        print("Daily reflection completed with score: \(currentReflection?.growthScore ?? 0)")
     }
 }

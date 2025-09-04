@@ -15,116 +15,173 @@ struct ReflectionEditorView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if isLoading {
-                    ProgressView("Loading...")
-                        .frame(maxWidth: .infinity, alignment: .center)
-                } else {
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Title")
-                                    .font(.headline)
-                                    .foregroundColor(AppColors.ink)
-                                TextField("Title (optional)", text: $title)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+        ZStack {
+            backgroundGradient
+            NavigationStack {
+                Group {
+                    if isLoading {
+                        loadingView
+                    } else {
+                        ScrollView {
+                            VStack(spacing: 24) {
+                                titleSection
+                                qaSection
+                                Spacer(minLength: 20)
                             }
-                            
-                            VStack(alignment: .leading, spacing: 16) {
-                                HStack {
-                                    Text("Questions & Answers")
-                                        .font(.headline)
-                                        .foregroundColor(AppColors.ink)
-                                    Spacer()
-                                    Button("Add Q&A") {
-                                        qaPairs.append(("", ""))
-                                    }
-                                    .buttonStyle(BeigePillButtonStyle())
-                                }
-                                
-                                ForEach(qaPairs.indices, id: \.self) { index in
-                                    VStack(spacing: 12) {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text("Question")
-                                                .font(.subheadline)
-                                                .foregroundColor(AppColors.ink)
-                                            TextField("Question…", text: $qaPairs[index].question)
-                                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                        }
-                                        
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text("Answer")
-                                                .font(.subheadline)
-                                                .foregroundColor(AppColors.ink)
-                                            TextEditor(text: $qaPairs[index].answer)
-                                                .frame(minHeight: 80)
-                                                .padding(8)
-                                                .background(Color(UIColor.systemGray6))
-                                                .cornerRadius(8)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 8)
-                                                        .stroke(Color(UIColor.systemGray4), lineWidth: 1)
-                                                )
-                                        }
-                                        
-                                        if qaPairs.count > 1 {
-                                            HStack {
-                                                Spacer()
-                                                Button {
-                                                    qaPairs.remove(at: index)
-                                                } label: {
-                                                    HStack {
-                                                        Image(systemName: "minus.circle")
-                                                        Text("Remove")
-                                                    }
-                                                    .foregroundColor(.red)
-                                                    .font(.caption)
-                                                }
-                                                .buttonStyle(PlainButtonStyle())
-                                            }
-                                        }
-                                    }
-                                    .padding(12)
-                                    .background(Color(UIColor.systemGray6).opacity(0.3))
-                                    .cornerRadius(12)
-                                }
-                            }
-                            
-                            Spacer(minLength: 20)
+                            .padding(.top, 20)
                         }
-                        .padding(16)
+                    }
+                }
+                .navigationTitle(entryId == nil ? "New Reflection" : "Edit Reflection")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") { saveEntry() }
+                            .disabled(
+                                title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                                qaPairs.allSatisfy { $0.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                            )
+                    }
+                }
+                .alert("Entry Saved", isPresented: $showingSaveAlert) {
+                    Button("OK") { dismiss() }
+                }
+                .alert("Error", isPresented: $showingErrorAlert) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(errorMessage)
+                }
+                .onAppear {
+                    if let entryId = entryId {
+                        loadExistingEntry(entryId)
+                    } else {
+                        isLoading = false
                     }
                 }
             }
-            .navigationTitle(entryId == nil ? "New Reflection" : "Edit Reflection")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+        }
+    }
+    
+    private var backgroundGradient: some View {
+        LinearGradient(
+            colors: [AppColors.seaMoss, AppColors.teal],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+    }
+    
+    private var loadingView: some View {
+        ProgressView("Loading...")
+            .frame(maxWidth: .infinity, alignment: .center)
+            .foregroundColor(.white)
+    }
+    
+    private var titleSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Title")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+                .textCase(.uppercase)
+                .tracking(0.5)
+            
+            TextField("Title (optional)", text: $title)
+                .padding(16)
+                .background(Color.white)
+                .foregroundColor(AppColors.ink)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(AppColors.ink.opacity(0.1), lineWidth: 1)
+                )
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+    
+    private var qaSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Questions & Answers")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                Spacer()
+                Button("Add Q&A") {
+                    qaPairs.append(("", ""))
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { saveEntry() }
-                        .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
-                                qaPairs.allSatisfy { $0.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(AppColors.seaMoss)
+                .foregroundColor(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .alert("Entry Saved", isPresented: $showingSaveAlert) {
-                Button("OK") { dismiss() }
+            
+            ForEach(qaPairs.indices, id: \.self) { index in
+                qaItemView(for: index)
             }
-            .alert("Error", isPresented: $showingErrorAlert) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(errorMessage)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.white.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+    
+    private func qaItemView(for index: Int) -> some View {
+        VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Question")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                TextField("Question…", text: $qaPairs[index].question)
+                    .padding(12)
+                    .background(Color.white)
+                    .foregroundColor(AppColors.ink)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .onAppear {
-                if let entryId = entryId {
-                    loadExistingEntry(entryId)
-                } else {
-                    isLoading = false
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Answer")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                TextEditor(text: $qaPairs[index].answer)
+                    .frame(minHeight: 80)
+                    .padding(12)
+                    .background(Color.white)
+                    .foregroundColor(AppColors.ink)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            
+            if qaPairs.count > 1 {
+                HStack {
+                    Spacer()
+                    Button {
+                        qaPairs.remove(at: index)
+                    } label: {
+                        HStack {
+                            Image(systemName: "minus.circle")
+                            Text("Remove")
+                        }
+                        .foregroundColor(.white)
+                        .font(.caption)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
         }
+        .padding(16)
+        .background(Color.white.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+        )
     }
     
     private func loadExistingEntry(_ id: String) {
@@ -147,8 +204,10 @@ struct ReflectionEditorView: View {
         do {
             let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
             let validQAs = qaPairs
-                .map { (question: $0.question.trimmingCharacters(in: .whitespacesAndNewlines), 
-                       answer: $0.answer.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                .map {
+                    (question: $0.question.trimmingCharacters(in: .whitespacesAndNewlines),
+                     answer: $0.answer.trimmingCharacters(in: .whitespacesAndNewlines))
+                }
                 .filter { !$0.answer.isEmpty } // Keep entries with answers
             
             if let entryId = entryId {
@@ -158,7 +217,11 @@ struct ReflectionEditorView: View {
                     items: validQAs.map { (id: nil as Int64?, question: $0.question, answer: $0.answer) }
                 )
                 // Also update the title
-                try DatabaseManager.shared.updateEntryMeta(id: entryId, title: trimmedTitle.isEmpty ? nil : trimmedTitle, text: "")
+                try DatabaseManager.shared.updateEntryMeta(
+                    id: entryId,
+                    title: trimmedTitle.isEmpty ? nil : trimmedTitle,
+                    text: ""
+                )
             } else {
                 // Create new entry
                 _ = try DatabaseManager.shared.saveNewReflection(

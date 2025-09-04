@@ -27,11 +27,6 @@ struct DailyReflectionView: View {
                                 MessageBubble(message: message)
                             }
                             
-                            // Thinking indicator
-                            if viewModel.isThinking {
-                                ThinkingBubble()
-                            }
-                            
                             // Loading indicator
                             if viewModel.isLoading {
                                 HStack {
@@ -176,13 +171,8 @@ struct DailyReflectionView: View {
         let trimmedInput = userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedInput.isEmpty else { return }
         
-        // Clear input immediately for better UX
+        viewModel.sendUserMessage(trimmedInput)
         userInput = ""
-        
-        // Send message with completion callback
-        viewModel.sendUserMessage(trimmedInput) {
-            // Additional cleanup if needed
-        }
     }
 }
 
@@ -369,48 +359,6 @@ struct InsightCard: View {
         .padding(16)
         .background(Color(UIColor.systemGray6))
         .cornerRadius(12)
-    }
-}
-
-// MARK: - Thinking Bubble
-
-struct ThinkingBubble: View {
-    @State private var animationPhase = 0
-    
-    var body: some View {
-        HStack {
-            HStack(spacing: 8) {
-                // Animated dots
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(AppColors.seaMoss)
-                        .frame(width: 8, height: 8)
-                        .scaleEffect(animationPhase == index ? 1.2 : 0.8)
-                        .animation(
-                            .easeInOut(duration: 0.6)
-                            .repeatForever(autoreverses: true)
-                            .delay(Double(index) * 0.2),
-                            value: animationPhase
-                        )
-                }
-                
-                Text("Inky is thinking...")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(12)
-            .background(Color(UIColor.systemGray5))
-            .cornerRadius(16)
-            
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .onAppear {
-            // Start the animation cycle
-            Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
-                animationPhase = (animationPhase + 1) % 3
-            }
-        }
     }
 }
 

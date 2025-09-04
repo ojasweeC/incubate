@@ -4,6 +4,7 @@ struct EntriesListView: View {
     let entryType: EntryType
     @State private var entries: [Entry] = []
     @State private var isLoading = true
+    @State private var showingEditor = false
     
     var body: some View {
         List {
@@ -37,6 +38,21 @@ struct EntriesListView: View {
             }
         }
         .navigationTitle(entryType.title)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingEditor = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(AppColors.seaMoss)
+                }
+                .accessibilityLabel("Add new \(entryType.title.lowercased())")
+            }
+        }
+        .sheet(isPresented: $showingEditor) {
+            editorViewForEntryType
+        }
         .onAppear {
             loadEntries()
         }
@@ -69,6 +85,20 @@ struct EntriesListView: View {
             return "Tap to view bullets"
         case .reflection:
             return "Reflect with Inky"
+        }
+    }
+    
+    @ViewBuilder
+    private var editorViewForEntryType: some View {
+        switch entryType {
+        case .raw:
+            RawEditorView()
+        case .todos:
+            TodosEditorView()
+        case .goals:
+            GoalsEditorView()
+        case .reflection:
+            ReflectionEditorView()
         }
     }
 }

@@ -8,53 +8,109 @@ struct RawEditorView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Title (optional)")
-                        .font(.headline)
-                        .foregroundColor(AppColors.ink)
-                    TextField("Enter title...", text: $title)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+            ScrollView {
+                VStack(spacing: 32) {
+                    VStack(spacing: 20) {
+                        // Title Field
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "textformat")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppColors.seaMoss)
+                                Text("Title")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppColors.seaMoss)
+                                Spacer()
+                                Text("optional")
+                                    .font(.system(size: 12, weight: .regular))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            TextField("What's on your mind?", text: $title)
+                                .font(.system(size: 16, weight: .regular))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
+                                .background(Color.white)
+                                .foregroundColor(AppColors.ink)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                        
+                        // Date Field
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppColors.seaMoss)
+                                Text("Date")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppColors.seaMoss)
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Text(Date(), style: .date)
+                                    .font(.system(size: 16, weight: .regular))
+                                    .foregroundColor(AppColors.ink)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        
+                        // Body Field
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "doc.text")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppColors.seaMoss)
+                                Text("Content")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppColors.seaMoss)
+                                Spacer()
+                            }
+                            
+                            TextEditor(text: $entryBody)
+                                .font(.system(size: 16, weight: .regular))
+                                .frame(minHeight: 200)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .background(Color.white)
+                                .foregroundColor(AppColors.ink)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    Spacer(minLength: 100)
                 }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Date")
-                        .font(.headline)
-                        .foregroundColor(AppColors.ink)
-                    Text(Date(), style: .date)
-                        .foregroundColor(AppColors.seaMoss)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(AppColors.beige)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Body")
-                        .font(.headline)
-                        .foregroundColor(AppColors.ink)
-                    TextEditor(text: $entryBody)         // <-- updated binding
-                        .frame(minHeight: 200)
-                        .padding(8)
-                        .background(AppColors.beige)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
-                        )
-                }
-
-                Spacer()
+                .padding(.top, 20)
             }
-            .padding(16)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Raw Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .foregroundColor(AppColors.seaMoss)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { saveEntry() }
+                        .foregroundColor(AppColors.seaMoss)
+                        .fontWeight(.semibold)
                         .disabled(entryBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
