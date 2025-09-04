@@ -15,51 +15,56 @@ struct ReflectionEditorView: View {
     }
     
     var body: some View {
-        ZStack {
-            backgroundGradient
-            NavigationStack {
-                Group {
-                    if isLoading {
-                        loadingView
-                    } else {
-                        ScrollView {
-                            VStack(spacing: 24) {
+        NavigationStack {
+            Group {
+                if isLoading {
+                    loadingView
+                } else {
+                    ScrollView {
+                        VStack(spacing: 32) {
+                            VStack(spacing: 20) {
                                 titleSection
                                 qaSection
-                                Spacer(minLength: 20)
                             }
-                            .padding(.top, 20)
+                            .padding(.horizontal, 20)
+                            
+                            Spacer(minLength: 100)
                         }
+                        .padding(.top, 20)
                     }
                 }
-                .navigationTitle(entryId == nil ? "New Reflection" : "Edit Reflection")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { dismiss() }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { saveEntry() }
-                            .disabled(
-                                title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-                                qaPairs.allSatisfy { $0.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                            )
-                    }
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle(entryId == nil ? "New Reflection" : "Edit Reflection")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(AppColors.seaMoss)
                 }
-                .alert("Entry Saved", isPresented: $showingSaveAlert) {
-                    Button("OK") { dismiss() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveEntry() }
+                        .foregroundColor(AppColors.seaMoss)
+                        .fontWeight(.semibold)
+                        .disabled(
+                            title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                            qaPairs.allSatisfy { $0.answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                        )
                 }
-                .alert("Error", isPresented: $showingErrorAlert) {
-                    Button("OK", role: .cancel) {}
-                } message: {
-                    Text(errorMessage)
-                }
-                .onAppear {
-                    if let entryId = entryId {
-                        loadExistingEntry(entryId)
-                    } else {
-                        isLoading = false
-                    }
+            }
+            .alert("Entry Saved", isPresented: $showingSaveAlert) {
+                Button("OK") { dismiss() }
+            }
+            .alert("Error", isPresented: $showingErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
+            .onAppear {
+                if let entryId = entryId {
+                    loadExistingEntry(entryId)
+                } else {
+                    isLoading = false
                 }
             }
         }
@@ -77,85 +82,96 @@ struct ReflectionEditorView: View {
     private var loadingView: some View {
         ProgressView("Loading...")
             .frame(maxWidth: .infinity, alignment: .center)
-            .foregroundColor(.white)
+            .foregroundColor(AppColors.seaMoss)
     }
     
     private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Title")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-                .textCase(.uppercase)
-                .tracking(0.5)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "textformat")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.seaMoss)
+                Text("Title")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.seaMoss)
+                Spacer()
+                Text("optional")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.secondary)
+            }
             
             TextField("Title (optional)", text: $title)
-                .padding(16)
+                .font(.system(size: 16, weight: .regular))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
                 .background(Color.white)
                 .foregroundColor(AppColors.ink)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(AppColors.ink.opacity(0.1), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
                 )
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(Color.white.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
     
     private var qaSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
+                Image(systemName: "bubble.left.and.bubble.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.seaMoss)
                 Text("Questions & Answers")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppColors.seaMoss)
                 Spacer()
                 Button("Add Q&A") {
                     qaPairs.append(("", ""))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(AppColors.seaMoss)
-                .foregroundColor(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppColors.seaMoss)
             }
             
             ForEach(qaPairs.indices, id: \.self) { index in
                 qaItemView(for: index)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(Color.white.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
     
     private func qaItemView(for index: Int) -> some View {
         VStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Question")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(AppColors.seaMoss)
                 TextField("Question…", text: $qaPairs[index].question)
-                    .padding(12)
+                    .font(.system(size: 16, weight: .regular))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
                     .background(Color.white)
                     .foregroundColor(AppColors.ink)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
+                    )
             }
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Answer")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(AppColors.seaMoss)
                 TextEditor(text: $qaPairs[index].answer)
-                    .frame(minHeight: 80)
-                    .padding(12)
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(minHeight: 120)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
                     .background(Color.white)
                     .foregroundColor(AppColors.ink)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(AppColors.seaMoss.opacity(0.3), lineWidth: 1)
+                    )
             }
             
             if qaPairs.count > 1 {
@@ -168,7 +184,7 @@ struct ReflectionEditorView: View {
                             Image(systemName: "minus.circle")
                             Text("Remove")
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.seaMoss.opacity(0.7))
                         .font(.caption)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -176,11 +192,11 @@ struct ReflectionEditorView: View {
             }
         }
         .padding(16)
-        .background(Color.white.opacity(0.1))
+        .background(Color.white.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                .stroke(AppColors.seaMoss.opacity(0.2), lineWidth: 1)
         )
     }
     

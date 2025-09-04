@@ -81,7 +81,7 @@ struct RawEditorView: View {
                             
                             TextEditor(text: $entryBody)
                                 .font(.system(size: 16, weight: .regular))
-                                .frame(minHeight: 200)
+                                .frame(minHeight: 300)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 10)
                                 .background(Color.white)

@@ -520,4 +520,116 @@ final class InkyAIService {
         let slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
         return slope
     }
+    
+    func generateRealisticMockData() -> ([Entry], [TodoItem], [GoalItem]) {
+        let calendar = Calendar.current
+        let now = Date()
+        var entries: [Entry] = []
+        var todoItems: [TodoItem] = []
+        var goalItems: [GoalItem] = []
+        
+        // Create 7 days of realistic data with a professional growth story
+        for i in 0..<7 {
+            let date = calendar.date(byAdding: .day, value: -i, to: now) ?? now
+            
+            // Professional-focused raw entries showing career and life balance growth
+            let rawTexts = [
+                "Finally sent that proposal I've been perfecting for weeks. The client feedback was positive and I feel confident about my strategic thinking. Learning to trust my expertise more.",
+                "Declined working late tonight to have dinner with friends. Six months ago I would have felt guilty, but setting boundaries is helping me show up better at work and in life.",
+                "Tough day with back-to-back meetings and competing deadlines. Instead of panicking like I used to, I prioritized ruthlessly and communicated clearly with my team. Growth in action.",
+                "Had my quarterly review today. My manager noticed how much my communication skills have improved. All those uncomfortable conversations I've been having are paying off.",
+                "Networking event felt less draining than usual. I'm getting better at authentic professional relationships instead of just collecting business cards. Quality over quantity.",
+                "Presented to senior leadership today and didn't apologize for taking up their time. I'm learning that my insights have value and deserve space in the room.",
+                "Wrapping up a challenging week. The old me would have burned out by Wednesday, but I've been managing my energy better. Small sustainable changes are adding up."
+            ]
+            
+            let entry = Entry(
+                id: UUID().uuidString,
+                userId: "demo-user",
+                type: .raw,
+                title: nil,
+                text: rawTexts[i],
+                tags: ["demo", "professional-growth"],
+                createdAt: date,
+                updatedAt: date,
+                deletedAt: nil
+            )
+            entries.append(entry)
+            
+            // Professional-focused todos
+            let todoEntry = Entry(
+                id: UUID().uuidString,
+                userId: "demo-user",
+                type: .todos,
+                title: "Professional Tasks",
+                text: "",
+                tags: ["demo"],
+                createdAt: date,
+                updatedAt: date,
+                deletedAt: nil
+            )
+            entries.append(todoEntry)
+            
+            // Realistic professional todos with improving completion
+            let completionRate = 0.5 + (Double(6-i) * 0.08) // Improves from 50% to 98%
+            let professionalTodos = [
+                "Review quarterly metrics",
+                "Follow up on client proposal",
+                "One-on-one with direct report",
+                "Update project timeline",
+                "Industry reading (15 min)",
+                "Send thank you note",
+                "Block focus time tomorrow"
+            ]
+            
+            let dayTodos = professionalTodos.shuffled().prefix(5)
+            for (index, todoText) in dayTodos.enumerated() {
+                let isDone = Double.random(in: 0...1) < completionRate
+                let todoItem = TodoItem(
+                    id: Int64(todoItems.count + 1),
+                    entryId: todoEntry.id,
+                    position: index,
+                    text: todoText,
+                    isDone: isDone
+                )
+                todoItems.append(todoItem)
+            }
+            
+            // Add some professional goals
+            if i == 6 { // Only for the oldest entry to avoid duplication
+                let goalEntry = Entry(
+                    id: UUID().uuidString,
+                    userId: "demo-user",
+                    type: .goals,
+                    title: "Q4 Professional Goals",
+                    text: "",
+                    tags: ["demo", "career"],
+                    createdAt: date,
+                    updatedAt: date,
+                    deletedAt: nil
+                )
+                entries.append(goalEntry)
+                
+                let professionalGoals = [
+                    "Lead cross-functional project successfully",
+                    "Improve public speaking confidence",
+                    "Build stronger stakeholder relationships",
+                    "Develop junior team member",
+                    "Complete leadership training program"
+                ]
+                
+                for (index, goalText) in professionalGoals.enumerated() {
+                    let goalItem = GoalItem(
+                        id: Int64(goalItems.count + 1),
+                        entryId: goalEntry.id,
+                        position: index,
+                        bullet: goalText
+                    )
+                    goalItems.append(goalItem)
+                }
+            }
+        }
+        
+        return (entries, todoItems, goalItems)
+    }
 }
