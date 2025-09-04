@@ -1,6 +1,5 @@
-# incubate
+# Inky
 
-Incubate
 Where your thoughts incubate to become your strengths
 
 Overview
