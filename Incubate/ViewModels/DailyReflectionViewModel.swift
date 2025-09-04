@@ -15,8 +15,6 @@ final class DailyReflectionViewModel: ObservableObject {
     @Published var conversationStage: ConversationStage = .greeting
     @Published var insights: [GrowthInsight] = []
     @Published var weeklyMomentum: Double = 0.0
-    @Published var userInput: String = ""
-    @Published var isThinking: Bool = false
     
     enum ConversationStage: Int, CaseIterable {
         case greeting = 0
@@ -255,62 +253,5 @@ final class DailyReflectionViewModel: ObservableObject {
         // In production, save to persistent storage
         // For demo, just print confirmation
         print("Daily reflection completed with score: \(currentReflection?.growthScore ?? 0)")
-    }
-    
-    func loadTodayReflection() {
-        // Load today's completed reflection from database
-        Task {
-            do {
-                let today = Calendar.current.startOfDay(for: Date())
-                let allEntries = try databaseManager.fetchAllActive()
-                let todayReflections = allEntries.filter { entry in
-                    entry.type == .reflection && 
-                    Calendar.current.isDate(entry.createdAt, inSameDayAs: today)
-                }
-                
-                if let reflectionEntry = todayReflections.first,
-                   let entryDetail = try? databaseManager.fetchEntryDetail(id: reflectionEntry.id),
-                   let reflectionQAs = entryDetail.reflectionQAs {
-                    
-                    // Convert Q&As to conversation messages
-                    var conversation: [ConversationMessage] = []
-                    for qa in reflectionQAs {
-                        conversation.append(ConversationMessage(
-                            id: UUID().uuidString,
-                            timestamp: Date(),
-                            sender: .inky,
-                            content: qa.question,
-                            messageType: .question
-                        ))
-                        conversation.append(ConversationMessage(
-                            id: UUID().uuidString,
-                            timestamp: Date(),
-                            sender: .user,
-                            content: qa.answer,
-                            messageType: .response
-                        ))
-                    }
-                    
-                    currentReflection = DailyReflection(
-                        id: reflectionEntry.id,
-                        date: today,
-                        conversation: conversation,
-                        isCompleted: true,
-                        growthScore: 0.8 // Default score for completed reflections
-                    )
-                }
-            } catch {
-                print("Failed to load today's reflection: \(error)")
-            }
-        }
-    }
-    
-    func markReflectionComplete() {
-        // Mark the current reflection as complete and save it
-        if var reflection = currentReflection {
-            reflection.isCompleted = true
-            currentReflection = reflection
-            saveReflection()
-        }
     }
 }

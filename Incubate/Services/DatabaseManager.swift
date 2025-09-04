@@ -399,11 +399,4 @@ final class DatabaseManager {
         let tagsJSON = tagsData.flatMap { String(data: $0, encoding: .utf8) }
         try db.run(sql, entry.id, entry.userId, entry.type.rawValue, entry.title, entry.text, tagsJSON, isoString(entry.createdAt), isoString(entry.updatedAt), entry.deletedAt.map(isoString))
     }
-    
-    func updateEntryDate(id: String, createdAt: Date) throws {
-        try queue.sync {
-            let sql = "UPDATE entries SET created_at = ? WHERE id = ?;"
-            try db.run(sql, isoString(createdAt), id)
-        }
-    }
 }
