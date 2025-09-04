@@ -38,16 +38,21 @@ final class InkyAIService {
             let isPositive = sentimentFactor > 0.5
             
             let rawTexts = [
-                "Today was amazing! I accomplished so much and felt really productive.",
-                "Feeling grateful for the small wins today. Every step forward counts.",
-                "Had some challenges but I'm learning to navigate them better.",
-                "Feeling energized and motivated to tackle my goals.",
-                "Reflecting on my progress and feeling proud of how far I've come.",
-                "Today was a bit challenging but I'm staying positive.",
-                "Celebrating another day of growth and self-improvement.",
-                "Feeling overwhelmed but reminding myself that this too shall pass.",
-                "Great energy today! Everything seems to be falling into place.",
-                "Taking time to appreciate the journey, not just the destination."
+                "Today was amazing! I accomplished so much and felt really productive and grateful for the opportunities.",
+                "Feeling grateful for the small wins today. Every step forward counts and I'm thankful for this progress.",
+                "Had some challenges but I'm learning to navigate them better. Grateful for the lessons learned.",
+                "Feeling energized and motivated to tackle my goals. I'm excited about what's ahead!",
+                "Reflecting on my progress and feeling proud of how far I've come. So grateful for this journey.",
+                "Today was a bit challenging but I'm staying positive and hopeful about tomorrow.",
+                "Celebrating another day of growth and self-improvement. Feeling blessed and thankful.",
+                "Feeling overwhelmed but reminding myself that this too shall pass. Taking it one step at a time.",
+                "Great energy today! Everything seems to be falling into place. Feeling joyful and content.",
+                "Taking time to appreciate the journey, not just the destination. Grateful for every moment.",
+                "Feeling anxious about the upcoming presentation but trying to stay calm and confident.",
+                "Had a wonderful conversation with a friend today. Feeling connected and supported.",
+                "Struggling with motivation today but grateful for the small moments of peace.",
+                "Feeling inspired by a book I'm reading. Excited to apply these new insights.",
+                "Tired but satisfied with the work accomplished today. Grateful for the progress made."
             ]
             
             let text = rawTexts[i % rawTexts.count]
@@ -172,6 +177,85 @@ final class InkyAIService {
         }
         
         return 0.5 // Neutral fallback
+    }
+    
+    func analyzeEnhancedSentiment(for text: String) -> Double {
+        let baseSentiment = analyzeSentiment(for: text)
+        let keywordBoost = calculateKeywordSentimentBoost(for: text)
+        
+        // Combine base sentiment with keyword analysis
+        // Weight the keyword analysis more heavily for better detection
+        let enhancedScore = (baseSentiment * 0.4) + (keywordBoost * 0.6)
+        
+        // Ensure score stays within 0.0 to 1.0 range
+        return max(0.0, min(1.0, enhancedScore))
+    }
+    
+    private func calculateKeywordSentimentBoost(for text: String) -> Double {
+        let lowercased = text.lowercased()
+        
+        // Comprehensive positive keywords
+        let positiveKeywords = [
+            // Gratitude and appreciation
+            "grateful", "gratitude", "thankful", "appreciate", "appreciation", "blessed", "fortunate",
+            // Joy and happiness
+            "happy", "joy", "joyful", "cheerful", "delighted", "ecstatic", "elated", "thrilled",
+            "amazing", "wonderful", "fantastic", "excellent", "great", "awesome", "incredible",
+            // Success and achievement
+            "accomplished", "achieved", "success", "successful", "progress", "improvement", "growth",
+            "proud", "confident", "motivated", "inspired", "energized", "excited",
+            // Love and connection
+            "love", "loved", "caring", "supportive", "connected", "belonging", "warmth",
+            // Optimism and hope
+            "hopeful", "optimistic", "positive", "bright", "promising", "encouraging",
+            // Peace and contentment
+            "peaceful", "calm", "content", "satisfied", "fulfilled", "balanced", "centered",
+            // Energy and vitality
+            "energetic", "vibrant", "alive", "refreshed", "renewed", "revitalized"
+        ]
+        
+        // Comprehensive negative keywords
+        let negativeKeywords = [
+            // Sadness and depression
+            "sad", "depressed", "down", "blue", "melancholy", "gloomy", "miserable", "unhappy",
+            // Anxiety and worry
+            "anxious", "worried", "stressed", "overwhelmed", "panicked", "nervous", "fearful",
+            "concerned", "troubled", "distressed", "agitated",
+            // Anger and frustration
+            "angry", "mad", "furious", "irritated", "frustrated", "annoyed", "upset", "disappointed",
+            // Exhaustion and fatigue
+            "tired", "exhausted", "drained", "burned out", "fatigued", "weary", "spent",
+            // Loneliness and isolation
+            "lonely", "alone", "isolated", "disconnected", "abandoned", "rejected",
+            // Failure and disappointment
+            "failed", "failure", "disappointed", "let down", "defeated", "hopeless", "helpless",
+            // Pain and suffering
+            "hurt", "pain", "suffering", "struggling", "difficult", "challenging", "hard"
+        ]
+        
+        // Count positive and negative keyword matches
+        let positiveCount = positiveKeywords.reduce(0) { count, keyword in
+            count + (lowercased.components(separatedBy: keyword).count - 1)
+        }
+        
+        let negativeCount = negativeKeywords.reduce(0) { count, keyword in
+            count + (lowercased.components(separatedBy: keyword).count - 1)
+        }
+        
+        // Calculate boost based on keyword density
+        let totalWords = lowercased.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.count
+        let positiveDensity = totalWords > 0 ? Double(positiveCount) / Double(totalWords) : 0.0
+        let negativeDensity = totalWords > 0 ? Double(negativeCount) / Double(totalWords) : 0.0
+        
+        // Apply stronger boost for gratitude and positive keywords
+        let gratitudeBoost = (lowercased.contains("grateful") || lowercased.contains("gratitude") || 
+                             lowercased.contains("thankful") || lowercased.contains("appreciate")) ? 0.3 : 0.0
+        
+        // Calculate final sentiment boost
+        let netBoost = (positiveDensity * 0.8) - (negativeDensity * 0.8) + gratitudeBoost
+        
+        // Convert to 0.0 to 1.0 scale (0.5 is neutral)
+        return 0.5 + netBoost
     }
     
     func analyzeEmotionalProfile(for text: String) -> EmotionalProfile {

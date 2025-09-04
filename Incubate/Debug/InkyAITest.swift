@@ -10,12 +10,18 @@ class InkyAITest {
         let testTexts = [
             "Today was amazing! I feel great!",
             "I'm having a really difficult time right now.",
-            "It's just another regular day, nothing special."
+            "It's just another regular day, nothing special.",
+            "I'm so grateful for today's opportunities and feeling blessed.",
+            "Feeling anxious and overwhelmed but trying to stay positive."
         ]
         
         for text in testTexts {
-            let sentiment = InkyAIService.shared.analyzeSentiment(for: text)
-            print("Text: '\(text)' -> Sentiment: \(sentiment)")
+            let baseSentiment = InkyAIService.shared.analyzeSentiment(for: text)
+            let enhancedSentiment = InkyAIService.shared.analyzeEnhancedSentiment(for: text)
+            print("Text: '\(text)'")
+            print("  Base Sentiment: \(String(format: "%.3f", baseSentiment))")
+            print("  Enhanced Sentiment: \(String(format: "%.3f", enhancedSentiment))")
+            print("  Improvement: \(String(format: "%.3f", enhancedSentiment - baseSentiment))")
         }
         
         // Test keyword extraction

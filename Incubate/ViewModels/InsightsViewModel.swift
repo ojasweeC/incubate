@@ -21,8 +21,13 @@ final class InsightsViewModel: ObservableObject {
         isLoading = true
         
         do {
-            let entries = try DatabaseManager.shared.fetchAllActive()
+            var entries = try DatabaseManager.shared.fetchAllActive()
             let inkyService = InkyAIService.shared
+            
+            // If no entries exist, generate demo data for testing
+            if entries.isEmpty {
+                entries = inkyService.generateDemoEntries()
+            }
             
             // Analyze entries by day of week
             let calendar = Calendar.current
@@ -54,9 +59,9 @@ final class InsightsViewModel: ObservableObject {
                         hasPositiveSentiment: false
                     ))
                 } else {
-                    // Calculate average sentiment for the day
+                    // Calculate average sentiment for the day using enhanced analysis
                     let sentiments = dayEntries.compactMap { entry -> Double? in
-                        inkyService.analyzeSentiment(for: entry.text)
+                        inkyService.analyzeEnhancedSentiment(for: entry.text)
                     }
                     
                     let averageSentiment = sentiments.isEmpty ? 0.5 : sentiments.reduce(0, +) / Double(sentiments.count)
