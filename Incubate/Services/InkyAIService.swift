@@ -1,11 +1,21 @@
 import Foundation
 import NaturalLanguage
 
+struct EmotionalProfile {
+    let overallSentiment: Double
+    let complexity: Double
+    let isConflicted: Bool
+}
+
+enum EmotionalNeed {
+    case validation, perspective, encouragement, celebration
+}
+
 final class InkyAIService {
     static let shared = InkyAIService()
     
     private let tokenizer = NLTokenizer(unit: .word)
-    private let tagger = NLTagger(tagSchemes: [.lexicalClass, .nameType])
+    private let tagger = NLTagger(tagSchemes: [.lexicalClass, .nameType, .sentimentScore])
     
     private init() {
         // No custom initialization needed
@@ -146,35 +156,114 @@ final class InkyAIService {
         return goalItems
     }
     
-    // MARK: - Core Analysis Methods
+    // MARK: - Enhanced Sentiment Analysis
     
     func analyzeSentiment(for text: String) -> Double {
-        // Simple keyword-based sentiment analysis
-        let positiveWords = ["amazing", "great", "awesome", "wonderful", "excellent", "fantastic", "happy", "joy", "love", "excited", "motivated", "energized", "grateful", "proud", "successful", "accomplished", "productive", "inspired", "confident", "optimistic"]
-        let negativeWords = ["terrible", "awful", "horrible", "bad", "sad", "angry", "frustrated", "disappointed", "worried", "anxious", "stressed", "overwhelmed", "tired", "exhausted", "defeated", "hopeless", "lonely", "afraid", "scared", "nervous"]
+        let sentimentTagger = NLTagger(tagSchemes: [.sentimentScore])
+        sentimentTagger.string = text
         
-        let lowercasedText = text.lowercased()
-        let words = lowercasedText.components(separatedBy: .whitespacesAndNewlines)
+        let (sentiment, _) = sentimentTagger.tag(at: text.startIndex, unit: .document, scheme: .sentimentScore)
         
-        var positiveCount = 0
-        var negativeCount = 0
-        
-        for word in words {
-            if positiveWords.contains(word) {
-                positiveCount += 1
-            } else if negativeWords.contains(word) {
-                negativeCount += 1
-            }
+        if let sentimentValue = sentiment?.rawValue,
+           let score = Double(sentimentValue) {
+            // Apple returns -1.0 (negative) to 1.0 (positive)
+            // Convert to 0.0 to 1.0 scale to match your existing logic
+            return (score + 1.0) / 2.0
         }
         
-        // Calculate sentiment score (0.0 to 1.0)
-        let totalEmotionalWords = positiveCount + negativeCount
-        if totalEmotionalWords == 0 {
-            return 0.5 // Neutral if no emotional words
+        return 0.5 // Neutral fallback
+    }
+    
+    func analyzeEmotionalProfile(for text: String) -> EmotionalProfile {
+        let sentimentTagger = NLTagger(tagSchemes: [.sentimentScore])
+        sentimentTagger.string = text
+        
+        // Get overall sentiment
+        let (sentiment, _) = sentimentTagger.tag(at: text.startIndex, unit: .document, scheme: .sentimentScore)
+        let baseScore = Double(sentiment?.rawValue ?? "0") ?? 0.0
+        
+        // Detect emotional complexity (mixed feelings)
+        let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
+        let sentenceScores = sentences.compactMap { sentence -> Double? in
+            guard !sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+            sentimentTagger.string = sentence
+            let (s, _) = sentimentTagger.tag(at: sentence.startIndex, unit: .document, scheme: .sentimentScore)
+            return Double(s?.rawValue ?? "0")
         }
         
-        let sentimentScore = Double(positiveCount) / Double(totalEmotionalWords)
-        return sentimentScore
+        let variance = calculateVariance(sentenceScores)
+        let isComplex = variance > 0.5 // Mixed emotions detected
+        
+        return EmotionalProfile(
+            overallSentiment: (baseScore + 1.0) / 2.0,
+            complexity: variance,
+            isConflicted: isComplex
+        )
+    }
+    
+    func detectEmotionalNeeds(text: String) -> [EmotionalNeed] {
+        let lowercased = text.lowercased()
+        var needs: [EmotionalNeed] = []
+        
+        // Detect need for validation
+        if lowercased.contains("nobody") || lowercased.contains("alone") || lowercased.contains("understand") {
+            needs.append(.validation)
+        }
+        
+        // Detect need for perspective
+        if lowercased.contains("stuck") || lowercased.contains("confused") || lowercased.contains("overwhelmed") {
+            needs.append(.perspective)
+        }
+        
+        // Detect need for encouragement
+        if lowercased.contains("can't") || lowercased.contains("failing") || lowercased.contains("giving up") {
+            needs.append(.encouragement)
+        }
+        
+        // Detect moments to celebrate
+        if lowercased.contains("accomplished") || lowercased.contains("proud") || lowercased.contains("achieved") {
+            needs.append(.celebration)
+        }
+        
+        return needs
+    }
+    
+    func generateTherapeuticResponse(userText: String, emotionalNeeds: [EmotionalNeed]) -> String {
+        // Reflection first
+        let keywords = extractKeywords(from: userText, maxCount: 2)
+        let reflection = keywords.isEmpty ? "" : "It sounds like \(keywords.first!) is really on your mind. "
+        
+        // Address emotional needs
+        var response = reflection
+        
+        if emotionalNeeds.contains(.validation) {
+            response += "What you're feeling makes complete sense given what you're going through. "
+        }
+        
+        if emotionalNeeds.contains(.perspective) {
+            response += "Sometimes when we're in the middle of something, it's hard to see the whole picture. "
+        }
+        
+        if emotionalNeeds.contains(.encouragement) {
+            response += "I can hear how hard you're trying, and that effort matters even when things feel difficult. "
+        }
+        
+        if emotionalNeeds.contains(.celebration) {
+            response += "That's something to genuinely feel good about - you should celebrate that accomplishment! "
+        }
+        
+        // Gentle exploration
+        response += "What would feel most supportive right now - talking through what happened, or thinking about what might help you move forward?"
+        
+        return response
+    }
+    
+    private func calculateVariance(_ values: [Double]) -> Double {
+        guard values.count > 1 else { return 0.0 }
+        
+        let mean = values.reduce(0, +) / Double(values.count)
+        let squaredDiffs = values.map { pow($0 - mean, 2) }
+        return squaredDiffs.reduce(0, +) / Double(values.count)
     }
     
     func extractKeywords(from text: String, maxCount: Int = 10) -> [String] {
@@ -320,7 +409,7 @@ final class InkyAIService {
         return recentSentiment - previousSentiment
     }
     
-    // MARK: - Conversation Generation
+    // MARK: - Enhanced Conversation Generation
     
     func generateDailyGreeting() -> String {
         let greetings = [
@@ -332,20 +421,78 @@ final class InkyAIService {
         return greetings.randomElement() ?? greetings[0]
     }
     
-    func generateContextualQuestion(basedOn insights: [GrowthInsight]) -> String? {
-        guard let insight = insights.first else { return nil }
+    func generateEmpathicQuestion(userResponse: String, conversationStage: Int, insights: [GrowthInsight] = []) -> String {
+        let profile = analyzeEmotionalProfile(for: userResponse)
+        let emotionalNeeds = detectEmotionalNeeds(text: userResponse)
+        let keywords = extractKeywords(from: userResponse, maxCount: 3)
         
-        switch insight.category {
-        case .sentiment:
-            return "I noticed your mood has been \(insight.title.contains("Positive") ? "improving" : "challenging") lately. What do you think is contributing to this?"
-        case .productivity:
-            return "You've been \(insight.title.contains("High") ? "crushing" : "working on") your todos! What's your secret to staying focused?"
-        case .goalProgress:
-            return "Your goals seem to really energize you. What's one goal you're most excited about right now?"
-        case .patterns:
-            return "I'm seeing some interesting patterns in your entries. What do you think they're telling you about yourself?"
-        case .momentum:
-            return "How do you feel about your current momentum? Are you where you want to be?"
+        // Get recent entries to reference user's actual patterns
+        let recentEntries = (try? DatabaseManager.shared.fetchAllActive(limit: 20)) ?? []
+        let recentKeywords = recentEntries.flatMap { extractKeywords(from: $0.text, maxCount: 2) }
+        let keywordFrequency = Dictionary(grouping: recentKeywords, by: { $0 }).mapValues { $0.count }
+        let frequentKeywords = keywordFrequency.filter { $0.value >= 2 }.keys.shuffled()
+        
+        // Handle conflicted emotions specially
+        if profile.isConflicted {
+            return "I hear mixed feelings in what you're sharing. It sounds like part of you feels one way, and another part feels different. That's completely normal - what aspect feels most important to explore?"
+        }
+        
+        switch conversationStage {
+        case 1: // Follow-up to greeting
+            if profile.overallSentiment > 0.7 && profile.complexity < 0.3 {
+                let templates = [
+                    "Your energy feels really clear and positive right now. What's contributing most to this feeling?",
+                    keywords.isEmpty ? "I love hearing that clarity and joy! What's been fueling this?" : "It's beautiful how you describe \(keywords.first!). Tell me more about that experience.",
+                    frequentKeywords.isEmpty ? "What's been bringing you the most happiness lately?" : "I've noticed you often write about \(frequentKeywords.first!) - how does that connect to your positive energy today?"
+                ]
+                return templates.randomElement()!
+            } else if profile.overallSentiment < 0.3 && profile.complexity > 0.5 {
+                return "It sounds like you're working through some complex feelings. Sometimes our emotions can feel layered - what part of this feels most pressing to talk through?"
+            } else if emotionalNeeds.contains(.validation) {
+                return "What you're experiencing sounds really valid. I'm here to listen - what would feel most supportive to explore?"
+            } else if emotionalNeeds.contains(.celebration) {
+                return generateTherapeuticResponse(userText: userResponse, emotionalNeeds: emotionalNeeds)
+            } else {
+                let keywordPhrase = keywords.isEmpty ? "" : " around \(keywords.first!)"
+                let templates = [
+                    "I'm curious to hear more\(keywordPhrase). What's been occupying your thoughts?",
+                    "How are you feeling about where things stand right now?",
+                    frequentKeywords.isEmpty ? "What's been on your mind most this week?" : "You've mentioned \(frequentKeywords.first!) in your recent entries - how are you feeling about that today?"
+                ]
+                return templates.randomElement()!
+            }
+            
+        case 2: // Contextual based on insights
+            if let insight = insights.first {
+                switch insight.category {
+                case .productivity:
+                    let completionRate = insight.confidence
+                    if completionRate > 0.7 {
+                        return "I've noticed you've been crushing your tasks lately - completing about \(Int(completionRate * 100))% of what you set out to do. What's your secret to staying so consistent?"
+                    } else {
+                        return "I see you're working on building your task completion rhythm. What's one small change that might help you feel more on track?"
+                    }
+                case .sentiment:
+                    return insight.title.contains("Positive") ?
+                        "Your recent entries show such beautiful growth in positivity. I'm curious - what shift have you noticed in yourself?" :
+                        "I can see you've been working through some challenging feelings in your writing. How are you taking care of yourself through this time?"
+                case .goalProgress:
+                    return "Your goals really seem to energize you! When you write about them, there's such passion in your words. What goal feels most alive for you right now?"
+                default:
+                    return frequentKeywords.isEmpty ? "Looking at your recent entries, what patterns do you notice in yourself?" : "I've been noticing you write about \(frequentKeywords.first!) quite often. What does that tell you about where your energy is flowing?"
+                }
+            }
+            // Fallback with potential data reference
+            return frequentKeywords.isEmpty ? "What's one thing you're learning about yourself lately?" : "Looking at your recent writing, especially around \(frequentKeywords.first!), what insights are emerging for you?"
+            
+        default: // Goal setting stage
+            let goalTemplates = [
+                "Looking ahead to tomorrow, what's one small thing you could do that would make you proud?",
+                "If you could accomplish just one meaningful thing this week, what would light you up?",
+                "What's one way you could build on today's energy tomorrow?",
+                insights.contains(where: { $0.category == .momentum }) ? "You've been building such good momentum - how do you want to keep that going?" : "What would make tomorrow feel like a win for you?"
+            ]
+            return goalTemplates.randomElement()!
         }
     }
     

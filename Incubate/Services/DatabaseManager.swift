@@ -394,11 +394,9 @@ final class DatabaseManager {
 
     // MARK: - Private helpers
     private func insert(_ entry: Entry) throws {
-        try queue.sync {
-            let sql = "INSERT OR REPLACE INTO entries (id, user_id, type, title, text, tags, created_at, updated_at, deleted_at) VALUES (?,?,?,?,?,?,?,?,?);"
-            let tagsData = try? JSONEncoder().encode(entry.tags)
-            let tagsJSON = tagsData.flatMap { String(data: $0, encoding: .utf8) }
-            try db.run(sql, entry.id, entry.userId, entry.type.rawValue, entry.title, entry.text, tagsJSON, isoString(entry.createdAt), isoString(entry.updatedAt), entry.deletedAt.map(isoString))
-        }
+        let sql = "INSERT OR REPLACE INTO entries (id, user_id, type, title, text, tags, created_at, updated_at, deleted_at) VALUES (?,?,?,?,?,?,?,?,?);"
+        let tagsData = try? JSONEncoder().encode(entry.tags)
+        let tagsJSON = tagsData.flatMap { String(data: $0, encoding: .utf8) }
+        try db.run(sql, entry.id, entry.userId, entry.type.rawValue, entry.title, entry.text, tagsJSON, isoString(entry.createdAt), isoString(entry.updatedAt), entry.deletedAt.map(isoString))
     }
 }
