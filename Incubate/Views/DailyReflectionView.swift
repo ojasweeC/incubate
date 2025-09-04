@@ -52,10 +52,14 @@ struct DailyReflectionView: View {
                     }
                 }
                 
-                // Input section
-                inputSection
+                // Input section (only show if not completed)
+                if viewModel.conversationStage != .completed {
+                    inputSection
+                } else {
+                    completionSection
+                }
             }
-            .navigationTitle("Chat with Inky")
+            .navigationTitle("Daily Reflection")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -161,6 +165,52 @@ struct DailyReflectionView: View {
                 }
                 .disabled(userInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .background(Color(UIColor.systemBackground))
+    }
+    
+    private var completionSection: some View {
+        VStack(spacing: 16) {
+            Divider()
+            
+            VStack(spacing: 12) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.green)
+                
+                Text("Reflection Complete!")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(AppColors.ink)
+                
+                if let score = viewModel.currentReflection?.growthScore {
+                    Text("Growth Score: \(score)/10")
+                        .font(.headline)
+                        .foregroundColor(AppColors.seaMoss)
+                }
+                
+                Text("Your thoughts have been saved and your growth journey continues!")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Done")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(AppColors.seaMoss)
+                        .cornerRadius(12)
+                }
+            }
+            .padding(24)
+            .background(AppColors.beige.opacity(0.3))
+            .cornerRadius(16)
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }

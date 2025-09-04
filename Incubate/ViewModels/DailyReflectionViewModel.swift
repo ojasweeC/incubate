@@ -20,12 +20,14 @@ final class DailyReflectionViewModel: ObservableObject {
         case greeting = 0
         case contextual = 1
         case goalSetting = 2
+        case completed = 3
         
         var title: String {
             switch self {
             case .greeting: return "Daily Check-in"
             case .contextual: return "Insights & Patterns"
             case .goalSetting: return "Looking Forward"
+            case .completed: return "Reflection Complete"
             }
         }
     }
@@ -65,6 +67,9 @@ final class DailyReflectionViewModel: ObservableObject {
             progressToGoalSetting()
         case .goalSetting:
             completeReflection()
+        case .completed:
+            // Conversation is already complete, no further action needed
+            break
         }
     }
     
@@ -79,6 +84,14 @@ final class DailyReflectionViewModel: ObservableObject {
         // Add completion message
         let completionMessage = generateCompletionMessage(score: score)
         addInkyMessage(completionMessage, type: .celebration)
+        
+        // Move to completed stage
+        conversationStage = .completed
+        
+        // Add closing sequence after a brief pause
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.addClosingSequence()
+        }
         
         currentReflection = reflection
         saveReflection()
@@ -249,9 +262,95 @@ final class DailyReflectionViewModel: ObservableObject {
         }
     }
     
+    private func addClosingSequence() {
+        guard let reflection = currentReflection else { return }
+        
+        // Add summary message
+        let summaryMessage = generateSummaryMessage()
+        addInkyMessage(summaryMessage, type: .insight)
+        
+        // Add final farewell after another pause
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            let farewellMessage = "Thank you for sharing your thoughts with me today. I'm proud of the growth I see in you. Until tomorrow!"
+            self.addInkyMessage(farewellMessage, type: .celebration)
+            
+            // Trigger haptic feedback for completion
+            HapticsService.playCompletionHaptic()
+        }
+    }
+    
+    private func generateSummaryMessage() -> String {
+        guard let reflection = currentReflection else { return "" }
+        
+        let userMessages = reflection.conversation.filter { $0.sender == .user }
+        let messageCount = userMessages.count
+        
+        var summary = "Here's what I noticed from our conversation today:\n\n"
+        
+        if messageCount >= 3 {
+            summary += "• You shared \(messageCount) thoughtful responses - that shows real engagement with your growth journey\n"
+        }
+        
+        if let score = reflection.growthScore {
+            if score >= 8 {
+                summary += "• Your growth score of \(score)/10 reflects excellent self-awareness and momentum\n"
+            } else if score >= 6 {
+                summary += "• Your growth score of \(score)/10 shows solid progress and commitment\n"
+            } else {
+                summary += "• Your growth score of \(score)/10 indicates you're building important reflection habits\n"
+            }
+        }
+        
+        if !insights.isEmpty {
+            summary += "• I identified \(insights.count) key patterns in your journal entries that we discussed\n"
+        }
+        
+        summary += "\nKeep up this amazing work! Every reflection makes you stronger."
+        
+        return summary
+    }
+    
     private func saveReflection() {
-        // In production, save to persistent storage
-        // For demo, just print confirmation
-        print("Daily reflection completed with score: \(currentReflection?.growthScore ?? 0)")
+        guard let reflection = currentReflection else { return }
+        
+        do {
+            // Convert conversation to Q&A format for database storage
+            let qaPairs = convertConversationToQA(reflection.conversation)
+            
+            // Create a title based on the date and score
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            let dateString = dateFormatter.string(from: reflection.date)
+            let title = "Daily Reflection - \(dateString)"
+            
+            // Save to database
+            let entry = try databaseManager.saveNewReflection(
+                title: title,
+                qas: qaPairs
+            )
+            
+            print("Daily reflection saved successfully with ID: \(entry.id)")
+            
+        } catch {
+            print("Failed to save daily reflection: \(error.localizedDescription)")
+            errorMessage = "Failed to save reflection: \(error.localizedDescription)"
+            showingError = true
+        }
+    }
+    
+    private func convertConversationToQA(_ conversation: [ConversationMessage]) -> [(String, String)] {
+        var qaPairs: [(String, String)] = []
+        var currentQuestion = ""
+        
+        for message in conversation {
+            if message.sender == .inky && message.messageType == .question {
+                currentQuestion = message.content
+            } else if message.sender == .user && !currentQuestion.isEmpty {
+                qaPairs.append((currentQuestion, message.content))
+                currentQuestion = ""
+            }
+        }
+        
+        return qaPairs
     }
 }

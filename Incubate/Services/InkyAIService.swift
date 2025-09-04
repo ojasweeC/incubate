@@ -413,10 +413,7 @@ final class InkyAIService {
     
     func generateDailyGreeting() -> String {
         let greetings = [
-            "Good morning! How are you feeling today?",
-            "Hello there! Ready to reflect on your day?",
-            "Hi! I've been looking at your recent entries. How's everything going?",
-            "Welcome back! I noticed some interesting patterns in your journal. Want to chat about them?"
+            "Welcome back! Thanks for taking 5 minutes to reflect. Tell me about your day or any thoughts that are at the surface."
         ]
         return greetings.randomElement() ?? greetings[0]
     }
