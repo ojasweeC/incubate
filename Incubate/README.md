@@ -10,7 +10,7 @@ A beautiful, private journaling app that helps you capture thoughts, track goals
 - **Goal Setting**: Define and monitor personal objectives
 - **Reflection**: Q&A format for structured self-reflection
 
-### Inky AI Companion 🐙
+### Inky AI Companion
 Meet Inky, your AI-powered growth companion that analyzes your journal entries to provide personalized insights and daily reflection prompts.
 
 #### What Inky Does
@@ -20,7 +20,7 @@ Meet Inky, your AI-powered growth companion that analyzes your journal entries t
 - **Growth Insights**: Celebrates wins and highlights areas for improvement
 
 #### How It Works
-1. **Daily Reflection**: Tap "Chat with Inky 🐙" on the main screen
+1. **Daily Reflection**: Tap "Daily Reflection" on the main screen
 2. **3-Stage Conversation**: 
    - Greeting & Check-in
    - Contextual Insights & Patterns
@@ -49,7 +49,7 @@ Meet Inky, your AI-powered growth companion that analyzes your journal entries t
 ### Testing Inky AI
 The app includes demo data generation for testing:
 - Create entries or let Inky generate sample data
-- Tap "Chat with Inky 🐙" to start a reflection session
+- Tap "Daily Reflection" to start a reflection session
 - View insights and patterns in the insights sheet
 
 ## Architecture

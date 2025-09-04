@@ -132,7 +132,7 @@ struct SettingsView: View {
                 Spacer()
                 
                 // Version Footer
-                Text("Incubate v0.1")
+                Text("Inky v0.1")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white.opacity(0.7))
                     .padding(.bottom, 20)

@@ -11,13 +11,13 @@ struct LockView: View {
             
             // Incubate Logo Section
             VStack(spacing: 8) {
-                Text("incubate")
-                    .font(.system(size: 42, weight: .thin, design: .default))
+                Text("inky")
+                    .font(.system(size: 64, weight: .thin, design: .default))
                     .foregroundColor(.white)
                     .textCase(.lowercase)
                 
-                Text("where your thoughts become your strengths")
-                    .font(.system(size: 16, weight: .light, design: .default))
+                Text("digital growth journal")
+                    .font(.system(size: 24, weight: .light, design: .default))
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
