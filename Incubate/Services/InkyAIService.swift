@@ -495,6 +495,7 @@ final class InkyAIService {
     
     // MARK: - Enhanced Conversation Generation
     
+    
     func generateDailyGreeting() -> String {
         let greetings = [
             "Welcome back! I'm here to support your reflection journey. Take a moment to share what's on your mind today.",
