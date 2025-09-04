@@ -392,6 +392,41 @@ final class DatabaseManager {
         }
     }
 
+    // MARK: - Mock Data Loading
+    
+    func loadMockData() throws {
+        try queue.sync {
+            // Clear existing data first
+            try db.run("DELETE FROM todo_items")
+            try db.run("DELETE FROM goal_items") 
+            try db.run("DELETE FROM reflection_qas")
+            try db.run("DELETE FROM entries")
+            
+            // Generate mock data
+            let inkyService = InkyAIService.shared
+            let entries = inkyService.generateDemoEntries()
+            let todoItems = inkyService.generateDemoTodoItems(for: entries.filter { $0.type == .todos }.map { $0.id })
+            let goalItems = inkyService.generateDemoGoalItems(for: entries.filter { $0.type == .goals }.map { $0.id })
+            
+            // Insert entries
+            for entry in entries {
+                try insert(entry)
+            }
+            
+            // Insert todo items
+            for todoItem in todoItems {
+                let sql = "INSERT INTO todo_items (entry_id, position, text, is_done) VALUES (?, ?, ?, ?);"
+                try db.run(sql, todoItem.entryId, todoItem.position, todoItem.text, todoItem.isDone ? 1 : 0)
+            }
+            
+            // Insert goal items
+            for goalItem in goalItems {
+                let sql = "INSERT INTO goal_items (entry_id, position, bullet) VALUES (?, ?, ?);"
+                try db.run(sql, goalItem.entryId, goalItem.position, goalItem.bullet)
+            }
+        }
+    }
+
     // MARK: - Private helpers
     private func insert(_ entry: Entry) throws {
         let sql = "INSERT OR REPLACE INTO entries (id, user_id, type, title, text, tags, created_at, updated_at, deleted_at) VALUES (?,?,?,?,?,?,?,?,?);"

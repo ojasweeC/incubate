@@ -3,6 +3,9 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject private var userVM: UserProfileViewModel
     @State private var showingEntryTypeSelector = false
+    @State private var showingMockDataAlert = false
+    @State private var showingMockDataSuccess = false
+    @State private var motivationalPhrase = "Ready to grow!"
 
     var body: some View {
         VStack(spacing: 24) {
@@ -25,6 +28,22 @@ struct MainView: View {
         .sheet(isPresented: $showingEntryTypeSelector) {
             EntryTypeSelectorView()
         }
+        .alert("Load Mock Data", isPresented: $showingMockDataAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Load Data", role: .destructive) {
+                loadMockData()
+            }
+        } message: {
+            Text("This will replace all existing entries with demo data. This action cannot be undone.")
+        }
+        .alert("Mock Data Loaded", isPresented: $showingMockDataSuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Demo data has been successfully loaded! You can now explore the app with sample entries.")
+        }
+        .onAppear {
+            updateMotivationalPhrase()
+        }
     }
 
     private var header: some View {
@@ -41,15 +60,16 @@ struct MainView: View {
 
     private var streakChip: some View {
         HStack(spacing: 8) {
-            Text("\(userVM.streakCount)-day streak")
+            Text(motivationalPhrase)
                 .font(AppFonts.headline)
+                .foregroundColor(AppColors.seaMoss)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(AppColors.beige)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: AppColors.beigeShadow, radius: 8, x: 0, y: 4)
-        .accessibilityLabel("Daily streak \(userVM.streakCount) days")
+        .accessibilityLabel("Motivational phrase: \(motivationalPhrase)")
     }
 
     private var entryBuckets: some View {
@@ -101,6 +121,15 @@ struct MainView: View {
             }
             .buttonStyle(BeigeCircleButtonStyle())
             .accessibilityLabel("Add new entry")
+
+            Button {
+                showingMockDataAlert = true
+            } label: {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.system(size: 24))
+            }
+            .buttonStyle(BeigeCircleButtonStyle())
+            .accessibilityLabel("Load mock data")
 
             NavigationLink { SettingsView() } label: {
                 Image(systemName: "person.crop.circle")
@@ -160,6 +189,20 @@ struct MainView: View {
             }
             .padding(.horizontal, 4)
         }
+    }
+    
+    private func loadMockData() {
+        do {
+            try DatabaseManager.shared.loadMockData()
+            updateMotivationalPhrase()
+            showingMockDataSuccess = true
+        } catch {
+            print("Failed to load mock data: \(error.localizedDescription)")
+        }
+    }
+    
+    private func updateMotivationalPhrase() {
+        motivationalPhrase = InkyAIService.shared.generateMotivationalPhrase()
     }
 }
 

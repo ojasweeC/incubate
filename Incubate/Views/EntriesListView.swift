@@ -7,35 +7,44 @@ struct EntriesListView: View {
     @State private var showingEditor = false
     
     var body: some View {
-        List {
-            if isLoading {
-                ProgressView("Loading...")
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .listRowBackground(Color.clear)
-            } else if entries.isEmpty {
-                Text("No \(entryType.title.lowercased()) yet")
-                    .foregroundColor(AppColors.seaMoss)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .listRowBackground(Color.clear)
-            } else {
-                ForEach(entries) { entry in
-                    NavigationLink {
-                        EntryDetailView(entryId: entry.id)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.title ?? entry.createdAt.formatted(date: .abbreviated, time: .omitted))
-                                .font(.headline)
-                                .foregroundColor(AppColors.ink)
-                            
-                            Text(secondaryText(for: entry))
-                                .font(.caption)
-                                .foregroundColor(AppColors.seaMoss)
-                                .lineLimit(2)
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                if isLoading {
+                    ProgressView("Loading...")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                } else if entries.isEmpty {
+                    Text("No \(entryType.title.lowercased()) yet")
+                        .foregroundColor(AppColors.seaMoss)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                } else {
+                    ForEach(entries) { entry in
+                        NavigationLink {
+                            EntryDetailView(entryId: entry.id)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(entry.title ?? entry.createdAt.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.headline)
+                                    .foregroundColor(AppColors.ink)
+                                
+                                Text(secondaryText(for: entry))
+                                    .font(.caption)
+                                    .foregroundColor(AppColors.seaMoss)
+                                    .lineLimit(2)
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(AppColors.beige.opacity(0.3))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                        .padding(.vertical, 4)
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
         }
         .navigationTitle(entryType.title)
         .toolbar {

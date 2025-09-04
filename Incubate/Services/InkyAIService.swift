@@ -29,12 +29,12 @@ final class InkyAIService {
         
         var entries: [Entry] = []
         
-        // Generate raw entries with varying sentiment over the last 30 days
-        for i in 0..<30 {
+        // Generate raw entries with varying sentiment over the last 10 days
+        for i in 0..<10 {
             let date = calendar.date(byAdding: .day, value: -i, to: now) ?? now
             
             // Vary sentiment to show trends
-            let sentimentFactor = Double(i) / 30.0
+            let sentimentFactor = Double(i) / 10.0
             let isPositive = sentimentFactor > 0.5
             
             let rawTexts = [
@@ -66,7 +66,7 @@ final class InkyAIService {
         }
         
         // Generate todo entries
-        for i in 0..<15 {
+        for i in 0..<7 {
             let date = calendar.date(byAdding: .day, value: -i, to: now) ?? now
             let entry = Entry(
                 id: UUID().uuidString,
@@ -83,7 +83,7 @@ final class InkyAIService {
         }
         
         // Generate goal entries
-        for i in 0..<10 {
+        for i in 0..<5 {
             let date = calendar.date(byAdding: .day, value: -i, to: now) ?? now
             let entry = Entry(
                 id: UUID().uuidString,
@@ -115,7 +115,7 @@ final class InkyAIService {
             ]
             
             for (todoIndex, todoText) in todos.enumerated() {
-                let isDone = index < 10 // First 10 entries have more completed todos
+                let isDone = index < 5 // First 5 entries have more completed todos
                 let todoItem = TodoItem(
                     id: Int64(todoItems.count + 1),
                     entryId: entryId,
@@ -253,7 +253,7 @@ final class InkyAIService {
         }
         
         // Gentle exploration
-        response += "What would feel most supportive right now - talking through what happened, or thinking about what might help you move forward?"
+        response += "I'm here to listen and support you as you process what feels most important to share right now."
         
         return response
     }
@@ -413,7 +413,9 @@ final class InkyAIService {
     
     func generateDailyGreeting() -> String {
         let greetings = [
-            "Welcome back! Thanks for taking 5 minutes to reflect. Tell me about your day or any thoughts that are at the surface."
+            "Welcome back! I'm here to support your reflection journey. Take a moment to share what's on your mind today.",
+            "Hello! I've been looking forward to our time together. What's been happening in your world lately?",
+            "Good to see you again! I'm ready to listen and help you process your thoughts. What's been on your mind?"
         ]
         return greetings.randomElement() ?? greetings[0]
     }
@@ -431,30 +433,30 @@ final class InkyAIService {
         
         // Handle conflicted emotions specially
         if profile.isConflicted {
-            return "I hear mixed feelings in what you're sharing. It sounds like part of you feels one way, and another part feels different. That's completely normal - what aspect feels most important to explore?"
+            return "I hear mixed feelings in what you're sharing. It sounds like part of you feels one way, and another part feels different. That's completely normal and shows you're processing complex emotions. Take your time to explore what feels most important to you right now."
         }
         
         switch conversationStage {
         case 1: // Follow-up to greeting
             if profile.overallSentiment > 0.7 && profile.complexity < 0.3 {
                 let templates = [
-                    "Your energy feels really clear and positive right now. What's contributing most to this feeling?",
-                    keywords.isEmpty ? "I love hearing that clarity and joy! What's been fueling this?" : "It's beautiful how you describe \(keywords.first!). Tell me more about that experience.",
-                    frequentKeywords.isEmpty ? "What's been bringing you the most happiness lately?" : "I've noticed you often write about \(frequentKeywords.first!) - how does that connect to your positive energy today?"
+                    "Your energy feels really clear and positive right now. I'd love to hear more about what's contributing to this wonderful feeling.",
+                    keywords.isEmpty ? "I love hearing that clarity and joy! I'm curious about what's been fueling this positive energy." : "It's beautiful how you describe \(keywords.first!). I'd love to hear more about that experience.",
+                    frequentKeywords.isEmpty ? "I'm curious about what's been bringing you the most happiness lately." : "I've noticed you often write about \(frequentKeywords.first!) - I'd love to hear how that connects to your positive energy today."
                 ]
                 return templates.randomElement()!
             } else if profile.overallSentiment < 0.3 && profile.complexity > 0.5 {
-                return "It sounds like you're working through some complex feelings. Sometimes our emotions can feel layered - what part of this feels most pressing to talk through?"
+                return "It sounds like you're working through some complex feelings. Sometimes our emotions can feel layered, and that's completely okay. I'm here to listen as you process what feels most important to you right now."
             } else if emotionalNeeds.contains(.validation) {
-                return "What you're experiencing sounds really valid. I'm here to listen - what would feel most supportive to explore?"
+                return "What you're experiencing sounds really valid. I'm here to listen and support you as you explore what feels most important to share."
             } else if emotionalNeeds.contains(.celebration) {
                 return generateTherapeuticResponse(userText: userResponse, emotionalNeeds: emotionalNeeds)
             } else {
-                let keywordPhrase = keywords.isEmpty ? "" : " around \(keywords.first!)"
                 let templates = [
-                    "I'm curious to hear more\(keywordPhrase). What's been occupying your thoughts?",
-                    "How are you feeling about where things stand right now?",
-                    frequentKeywords.isEmpty ? "What's been on your mind most this week?" : "You've mentioned \(frequentKeywords.first!) in your recent entries - how are you feeling about that today?"
+                    "I'd love to hear more about what's been occupying your thoughts lately.",
+                    "I'm interested in hearing how you're feeling about where things stand right now.",
+                    "I'm curious about what's been on your mind most this week.",
+                    frequentKeywords.isEmpty ? "I'd love to hear what's been on your mind most this week." : "I've noticed you've been writing about \(frequentKeywords.first!) recently - I'd love to hear more about how that's been for you."
                 ]
                 return templates.randomElement()!
             }
@@ -465,29 +467,29 @@ final class InkyAIService {
                 case .productivity:
                     let completionRate = insight.confidence
                     if completionRate > 0.7 {
-                        return "I've noticed you've been crushing your tasks lately - completing about \(Int(completionRate * 100))% of what you set out to do. What's your secret to staying so consistent?"
+                        return "I've noticed you've been crushing your tasks lately - completing about \(Int(completionRate * 100))% of what you set out to do. I'd love to hear about your approach to staying so consistent."
                     } else {
-                        return "I see you're working on building your task completion rhythm. What's one small change that might help you feel more on track?"
+                        return "I see you're working on building your task completion rhythm. I'm curious about what strategies you're exploring to help you feel more on track."
                     }
                 case .sentiment:
                     return insight.title.contains("Positive") ?
-                        "Your recent entries show such beautiful growth in positivity. I'm curious - what shift have you noticed in yourself?" :
-                        "I can see you've been working through some challenging feelings in your writing. How are you taking care of yourself through this time?"
+                        "Your recent entries show such beautiful growth in positivity. I'd love to hear about the shifts you've noticed in yourself." :
+                        "I can see you've been working through some challenging feelings in your writing. I'm curious about how you're taking care of yourself through this time."
                 case .goalProgress:
-                    return "Your goals really seem to energize you! When you write about them, there's such passion in your words. What goal feels most alive for you right now?"
+                    return "Your goals really seem to energize you! When you write about them, there's such passion in your words. I'd love to hear which goal feels most alive for you right now."
                 default:
-                    return frequentKeywords.isEmpty ? "Looking at your recent entries, what patterns do you notice in yourself?" : "I've been noticing you write about \(frequentKeywords.first!) quite often. What does that tell you about where your energy is flowing?"
+                    return frequentKeywords.isEmpty ? "Looking at your recent entries, I'm curious about what patterns you're noticing in yourself." : "I've been noticing you write about \(frequentKeywords.first!) quite often. I'd love to hear what that tells you about where your energy is flowing."
                 }
             }
             // Fallback with potential data reference
-            return frequentKeywords.isEmpty ? "What's one thing you're learning about yourself lately?" : "Looking at your recent writing, especially around \(frequentKeywords.first!), what insights are emerging for you?"
+            return frequentKeywords.isEmpty ? "I'd love to hear about one thing you're learning about yourself lately." : "Looking at your recent writing, especially around \(frequentKeywords.first!), I'm curious about what insights are emerging for you."
             
         default: // Goal setting stage
             let goalTemplates = [
-                "Looking ahead to tomorrow, what's one small thing you could do that would make you proud?",
-                "If you could accomplish just one meaningful thing this week, what would light you up?",
-                "What's one way you could build on today's energy tomorrow?",
-                insights.contains(where: { $0.category == .momentum }) ? "You've been building such good momentum - how do you want to keep that going?" : "What would make tomorrow feel like a win for you?"
+                "Looking ahead to tomorrow, I'd love to hear about one small thing you could do that would make you proud.",
+                "If you could accomplish just one meaningful thing this week, I'm curious about what would light you up.",
+                "I'd love to hear about one way you could build on today's energy tomorrow.",
+                insights.contains(where: { $0.category == .momentum }) ? "You've been building such good momentum - I'm curious about how you want to keep that going." : "I'd love to hear what would make tomorrow feel like a win for you."
             ]
             return goalTemplates.randomElement()!
         }
@@ -495,12 +497,140 @@ final class InkyAIService {
     
     func generateGoalSettingPrompt() -> String {
         let prompts = [
-            "Looking ahead, what's one small step you could take tomorrow to move closer to your goals?",
-            "If you could accomplish just one thing this week, what would make you feel most proud?",
-            "What's a challenge you're facing that you'd like to tackle differently?",
-            "How can you make tomorrow even better than today?"
+            "Looking ahead, I'd love to hear about one small step you could take tomorrow to move closer to your goals.",
+            "If you could accomplish just one thing this week, I'm curious about what would make you feel most proud.",
+            "What challenge are you facing that you'd like to tackle differently tomorrow?",
+            "I'm curious about how you could make tomorrow even better than today."
         ]
         return prompts.randomElement() ?? prompts[0]
+    }
+    
+    // MARK: - Motivational Phrases
+    
+    func generateMotivationalPhrase() -> String {
+        do {
+            let entries = try DatabaseManager.shared.fetchAllActive(limit: 20)
+            
+            if entries.isEmpty {
+                return getDefaultMotivationalPhrase()
+            }
+            
+            // Analyze recent sentiment
+            let recentSentiment = calculateRecentSentiment(entries: entries)
+            let productivityLevel = calculateProductivityLevel(entries: entries)
+            let goalProgress = calculateGoalProgress(entries: entries)
+            
+            // Generate phrase based on patterns
+            if recentSentiment > 0.6 && productivityLevel > 0.7 {
+                return getHighEnergyPhrase()
+            } else if recentSentiment < 0.3 {
+                return getEncouragingPhrase()
+            } else if productivityLevel < 0.4 {
+                return getProductivityPhrase()
+            } else if goalProgress > 0.6 {
+                return getGoalFocusedPhrase()
+            } else {
+                return getBalancedPhrase()
+            }
+            
+        } catch {
+            return getDefaultMotivationalPhrase()
+        }
+    }
+    
+    private func calculateRecentSentiment(entries: [Entry]) -> Double {
+        let recentEntries = entries.prefix(10)
+        let sentiments = recentEntries.compactMap { entry -> Double? in
+            if entry.type == .raw {
+                return analyzeSentiment(for: entry.text)
+            }
+            return nil
+        }
+        
+        guard !sentiments.isEmpty else { return 0.5 }
+        return sentiments.reduce(0, +) / Double(sentiments.count)
+    }
+    
+    private func calculateProductivityLevel(entries: [Entry]) -> Double {
+        let todoEntries = entries.filter { $0.type == .todos }
+        guard !todoEntries.isEmpty else { return 0.5 }
+        
+        // This is a simplified calculation - in a real app you'd fetch todo items
+        return Double(todoEntries.count) / 10.0 // Normalize based on expected entries
+    }
+    
+    private func calculateGoalProgress(entries: [Entry]) -> Double {
+        let goalEntries = entries.filter { $0.type == .goals }
+        guard !goalEntries.isEmpty else { return 0.5 }
+        
+        // This is a simplified calculation - in a real app you'd analyze goal completion
+        return Double(goalEntries.count) / 5.0 // Normalize based on expected entries
+    }
+    
+    private func getHighEnergyPhrase() -> String {
+        let phrases = [
+            "You're on fire!",
+            "Crushing it today!",
+            "Momentum building!",
+            "Energy is flowing!",
+            "Riding the wave!"
+        ]
+        return phrases.randomElement() ?? phrases[0]
+    }
+    
+    private func getEncouragingPhrase() -> String {
+        let phrases = [
+            "You've got this!",
+            "One step forward!",
+            "Progress over perfection!",
+            "Small wins matter!",
+            "Keep going strong!"
+        ]
+        return phrases.randomElement() ?? phrases[0]
+    }
+    
+    private func getProductivityPhrase() -> String {
+        let phrases = [
+            "Focus and flow!",
+            "Time to shine!",
+            "Make it happen!",
+            "Productivity mode!",
+            "Ready to conquer!"
+        ]
+        return phrases.randomElement() ?? phrases[0]
+    }
+    
+    private func getGoalFocusedPhrase() -> String {
+        let phrases = [
+            "Goals in sight!",
+            "Dreams becoming real!",
+            "Vision to reality!",
+            "Target locked in!",
+            "Mission in progress!"
+        ]
+        return phrases.randomElement() ?? phrases[0]
+    }
+    
+    private func getBalancedPhrase() -> String {
+        let phrases = [
+            "Growing every day!",
+            "Journey continues!",
+            "Steady progress!",
+            "Building momentum!",
+            "On the path!"
+        ]
+        return phrases.randomElement() ?? phrases[0]
+    }
+    
+    private func getDefaultMotivationalPhrase() -> String {
+        let phrases = [
+            "Ready to grow!",
+            "New day, new you!",
+            "Time to reflect!",
+            "Journey begins!",
+            "Let's do this!"
+        ]
+        return phrases.randomElement() ?? phrases[0]
     }
     
     // MARK: - Helper Methods
