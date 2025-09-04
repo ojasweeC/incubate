@@ -32,7 +32,7 @@ struct MainView: View {
             Text("Welcome back, \(userVM.firstName)")
                 .font(AppFonts.title)
                 .foregroundColor(AppColors.ink)
-            Text("Jot it down.")
+            Text("Journaling made easy.")
                 .font(AppFonts.body)
                 .foregroundColor(AppColors.seaMoss)
         }
@@ -121,11 +121,11 @@ struct MainView: View {
                         .foregroundColor(.white)
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Chat with Inky")
+                        Text("Daily Reflection")
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
-                        Text("Daily reflection & insights")
+                        Text("All you need is 5 minutes.")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.9))
                     }
